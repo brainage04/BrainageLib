@@ -3,12 +3,32 @@ pluginManagement {
 		maven {
 			url = uri("../FabricModdingConventions/build/local-repo")
 		}
+		ivy {
+			name = "FabricModdingConventionsGitHubReleases"
+			url = uri("https://github.com/brainage04/FabricModdingConventions/releases/download")
+			patternLayout {
+				artifact "v[revision]/[artifact]-[revision].[ext]"
+			}
+			metadataSources {
+				artifact()
+			}
+			content {
+				includeModule "io.github.brainage04", "fabricmoddingconventions"
+			}
+		}
 		maven {
 			name = 'Fabric'
 			url = 'https://maven.fabricmc.net/'
 		}
 		mavenCentral()
 		gradlePluginPortal()
+	}
+	resolutionStrategy {
+		eachPlugin {
+			if (requested.id.id.startsWith("io.github.brainage04.")) {
+				useModule("io.github.brainage04:fabricmoddingconventions:${requested.version}")
+			}
+		}
 	}
 }
 
