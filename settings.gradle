@@ -10,10 +10,11 @@ pluginManagement {
 				artifact "v[revision]/[artifact]-[revision].[ext]"
 			}
 			metadataSources {
+				gradleMetadata()
 				artifact()
 			}
 			content {
-				includeModule "io.github.brainage04", "fabricmoddingconventions"
+				includeGroup "io.github.brainage04"
 			}
 		}
 		maven {
@@ -25,8 +26,16 @@ pluginManagement {
 	}
 	resolutionStrategy {
 		eachPlugin {
-			if (requested.id.id.startsWith("io.github.brainage04.")) {
-				useModule("io.github.brainage04:fabricmoddingconventions:${requested.version}")
+			def moduleName = [
+					"io.github.brainage04.fabric-mod-conventions"    : "fabric-mod-conventions-gradle",
+					"io.github.brainage04.client-gametest-recorder" : "client-gametest-recorder-gradle",
+					"io.github.brainage04.production-gametests"     : "production-gametests-gradle",
+					"io.github.brainage04.workspace-dependencies"   : "workspace-dependencies-gradle",
+					"io.github.brainage04.maven-central-publishing" : "maven-central-publishing-gradle",
+					"io.github.brainage04.mod-publishing"           : "mod-publishing-gradle",
+			][requested.id.id]
+			if (moduleName != null) {
+				useModule("io.github.brainage04:${moduleName}:${requested.version}")
 			}
 		}
 	}
