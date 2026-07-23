@@ -1,0 +1,32 @@
+plugins {
+	id 'maven-publish'
+	id 'io.github.brainage04.production-gametests' version "${fabricmoddingconventions_version}"
+	id 'io.github.brainage04.workspace-dependencies' version "${fabricmoddingconventions_version}"
+	id 'io.github.brainage04.maven-central-publishing' version "${fabricmoddingconventions_version}"
+	id 'io.github.brainage04.mod-publishing' version "${fabricmoddingconventions_version}"
+}
+
+repositories {
+	mavenLocal()
+}
+
+workspaceDependencies {
+	siblingMaven("FabricModdingConventions") {
+		coordinate.set("io.github.brainage04:fabricmoddingconventions:${project.fabricmoddingconventions_version}")
+	}
+}
+
+publishing {
+	publications {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
+			from components.java
+		}
+	}
+}
+
+mavenCentralPublishing {
+	repository.set("brainage04/BrainageLib")
+	publicationName.set("BrainageLib")
+	description.set("Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.")
+}

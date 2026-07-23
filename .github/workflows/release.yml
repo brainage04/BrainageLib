@@ -1,0 +1,115 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    permissions:
+      contents: write
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-release-prepare.yml@v2.3.2
+    secrets:
+      release_token: ${{ secrets.GITHUB_TOKEN }}
+
+  github:
+    needs: prepare
+    permissions:
+      contents: write
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-github.yml@v2.3.2
+    with:
+      artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      release_body: ${{ needs.prepare.outputs.release_body }}
+    secrets:
+      release_token: ${{ secrets.GITHUB_TOKEN }}
+
+  maven-central:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: check Maven Central publication
+        id: config
+        env:
+          CENTRAL_PORTAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
+          CENTRAL_PORTAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          CENTRAL_POM_URL="https://repo1.maven.org/maven2/io/github/brainage04/brainagelib/${RELEASE_VERSION}/brainagelib-${RELEASE_VERSION}.pom"
+          if curl --fail --silent --head "${CENTRAL_POM_URL}" >/dev/null; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Maven Central publication because BrainageLib ${RELEASE_VERSION} is already published."
+          elif [ -z "${CENTRAL_PORTAL_USERNAME}" ] \
+            || [ -z "${CENTRAL_PORTAL_PASSWORD}" ] \
+            || [ -z "${SIGNING_KEY}" ] \
+            || [ -z "${SIGNING_PASSWORD}" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Maven Central publication because one or more credentials are not configured."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: checkout repository
+        if: steps.config.outputs.enabled == 'true'
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref_name }}
+
+      - name: validate gradle wrapper
+        if: steps.config.outputs.enabled == 'true'
+        uses: gradle/actions/wrapper-validation@v5
+
+      - name: setup jdk
+        if: steps.config.outputs.enabled == 'true'
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: microsoft
+
+      - name: setup gradle
+        if: steps.config.outputs.enabled == 'true'
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: publish to Maven Central
+        if: steps.config.outputs.enabled == 'true'
+        env:
+          CENTRAL_PORTAL_PASSWORD: ${{ secrets.CENTRAL_PORTAL_PASSWORD }}
+          CENTRAL_PORTAL_USERNAME: ${{ secrets.CENTRAL_PORTAL_USERNAME }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon publishToMavenCentral -PcentralPublishingType=automatic
+
+  modrinth:
+    needs: prepare
+    permissions:
+      contents: read
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-modrinth.yml@v2.3.2
+    with:
+      artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      release_body: ${{ needs.prepare.outputs.release_body }}
+      project_id: ${{ vars.MODRINTH_PROJECT_ID }}
+    secrets:
+      modrinth_token: ${{ secrets.MODRINTH_TOKEN }}
+
+  curseforge:
+    needs: prepare
+    permissions:
+      contents: read
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-curseforge.yml@v2.3.2
+    with:
+      artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      release_body: ${{ needs.prepare.outputs.release_body }}
+      project_id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+      project_slug: brainagelib
+    secrets:
+      curseforge_token: ${{ secrets.CURSEFORGE_TOKEN }}
