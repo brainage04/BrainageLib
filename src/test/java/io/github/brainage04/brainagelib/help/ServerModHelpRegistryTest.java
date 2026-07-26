@@ -6,6 +6,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class ServerModHelpRegistryTest {
     @Test
@@ -38,5 +39,19 @@ class ServerModHelpRegistryTest {
 
         String operatorMessage = ServerModHelpRegistry.firstJoinMessage(true).getString();
         assertTrue(operatorMessage.contains("/servermods config"));
+    }
+    @Test
+    void unregisterRemovesOnlyTheExactRegisteredEntry() {
+        ServerModHelpEntry entry = ServerModHelpEntry.playerOnly(
+                "registry_test_removal",
+                "Removal Mod",
+                "Removal description.",
+                "/removal help"
+        );
+
+        ServerModHelpRegistry.register(entry);
+        assertTrue(ServerModHelpRegistry.unregister(entry));
+        assertFalse(ServerModHelpRegistry.entries().contains(entry));
+        assertFalse(ServerModHelpRegistry.unregister(entry));
     }
 }

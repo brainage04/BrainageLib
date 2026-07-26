@@ -1,5 +1,6 @@
 plugins {
 	id 'maven-publish'
+	id 'io.github.brainage04.client-gametest-recorder' version "${fabricmoddingconventions_version}"
 	id 'io.github.brainage04.production-gametests' version "${fabricmoddingconventions_version}"
 	id 'io.github.brainage04.workspace-dependencies' version "${fabricmoddingconventions_version}"
 	id 'io.github.brainage04.maven-central-publishing' version "${fabricmoddingconventions_version}"
@@ -29,4 +30,34 @@ mavenCentralPublishing {
 	repository.set("brainage04/BrainageLib")
 	publicationName.set("BrainageLib")
 	description.set("Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.")
+}
+
+pluginManager.withPlugin("io.github.brainage04.client-gametest-recorder") {
+	clientGameTestRecorder {
+		minecraftOptionsVersion.set("4671")
+		maxFps.set("30")
+		renderDistance.set("5")
+		simulationDistance.set("5")
+		guiScale.set("3")
+	}
+}
+
+productionGameTests {
+	includeClient.set(true)
+	clientRunDir.set(clientGameTestRecorder.runDir)
+	clientUseXvfb.set(providers.environmentVariable("GTR_RECORDING_MANAGED_XVFB")
+			.map { value -> !value.toBoolean() }
+			.orElse(true))
+}
+
+tasks.named("recordClientGameTest") {
+	runTaskName.set("runProductionClientGameTest")
+}
+
+tasks.named("prepareClientGameTestRun") {
+	mustRunAfter("prepareProductionGameTestRuns")
+}
+
+tasks.matching { it.name == "runProductionClientGameTest" }.configureEach {
+	dependsOn("prepareClientGameTestRun")
 }

@@ -26,6 +26,16 @@ public final class ServerModHelpRegistry {
         }
     }
 
+    /**
+     * Removes a previously registered entry when it is no longer applicable.
+     *
+     * @return {@code true} when this exact entry was registered and removed
+     */
+    public static synchronized boolean unregister(ServerModHelpEntry entry) {
+        Objects.requireNonNull(entry, "entry");
+        return ENTRIES.remove(entry.modId(), entry);
+    }
+
     public static synchronized List<ServerModHelpEntry> entries() {
         List<ServerModHelpEntry> entries = new ArrayList<>(ENTRIES.values());
         entries.sort(Comparator.comparing(ServerModHelpEntry::displayName, String.CASE_INSENSITIVE_ORDER));
