@@ -13,6 +13,9 @@ jobs:
     permissions:
       contents: write
     uses: brainage04/FabricModdingConventions/.github/workflows/reusable-release-prepare.yml@v2.3.9
+    with:
+      additional_artifact_pattern: brainagelib-neoforge-*.jar
+      resolve_release_notes_with_gradle: false
     secrets:
       release_token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -23,6 +26,9 @@ jobs:
     uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-github.yml@v2.3.9
     with:
       artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      additional_artifact_file: ${{ needs.prepare.outputs.additional_artifact_file }}
+      publish_with_gradle: false
+      release_name: ${{ format('BrainageLib {0}', github.ref_name) }}
       release_body: ${{ needs.prepare.outputs.release_body }}
     secrets:
       release_token: ${{ secrets.GITHUB_TOKEN }}
@@ -42,10 +48,18 @@ jobs:
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          CENTRAL_POM_URL="https://repo1.maven.org/maven2/io/github/brainage04/brainagelib/${RELEASE_VERSION}/brainagelib-${RELEASE_VERSION}.pom"
-          if curl --fail --silent --head "${CENTRAL_POM_URL}" >/dev/null; then
+          FABRIC_POM_URL="https://repo1.maven.org/maven2/io/github/brainage04/brainagelib/${RELEASE_VERSION}/brainagelib-${RELEASE_VERSION}.pom"
+          NEOFORGE_POM_URL="https://repo1.maven.org/maven2/io/github/brainage04/brainagelib-neoforge/${RELEASE_VERSION}/brainagelib-neoforge-${RELEASE_VERSION}.pom"
+          FABRIC_EXISTS=false
+          NEOFORGE_EXISTS=false
+          if curl --fail --silent --head "${FABRIC_POM_URL}" >/dev/null; then FABRIC_EXISTS=true; fi
+          if curl --fail --silent --head "${NEOFORGE_POM_URL}" >/dev/null; then NEOFORGE_EXISTS=true; fi
+          if [ "${FABRIC_EXISTS}" = true ] && [ "${NEOFORGE_EXISTS}" = true ]; then
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipping Maven Central publication because BrainageLib ${RELEASE_VERSION} is already published."
+            echo "::notice::Skipping Maven Central publication because both BrainageLib ${RELEASE_VERSION} artifacts are already published."
+          elif [ "${FABRIC_EXISTS}" = true ] || [ "${NEOFORGE_EXISTS}" = true ]; then
+            echo "One BrainageLib loader artifact already exists on Maven Central while the other is missing; refusing a partial re-publication."
+            exit 1
           elif [ -z "${CENTRAL_PORTAL_USERNAME}" ] \
             || [ -z "${CENTRAL_PORTAL_PASSWORD}" ] \
             || [ -z "${SIGNING_KEY}" ] \
@@ -87,27 +101,63 @@ jobs:
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         run: |
           chmod +x ./gradlew
-          ./gradlew --no-daemon publishToMavenCentral -PcentralPublishingType=automatic
+          ./gradlew --no-daemon publishAllToMavenCentral -PcentralPublishingType=automatic
 
-  modrinth:
+  modrinth-fabric:
     needs: prepare
     permissions:
       contents: read
     uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-modrinth.yml@v2.3.9
     with:
       artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      gradle_task: :fabric:publishModrinth
+      sync_gradle_task: :fabric:syncModrinthIcon
+      sync_state_file: fabric/build/mod-publishing/modrinth-project-state.json
       release_body: ${{ needs.prepare.outputs.release_body }}
       project_id: ${{ vars.MODRINTH_PROJECT_ID }}
     secrets:
       modrinth_token: ${{ secrets.MODRINTH_TOKEN }}
 
-  curseforge:
+  modrinth-neoforge:
+    needs:
+      - prepare
+      - modrinth-fabric
+    permissions:
+      contents: read
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-modrinth.yml@v2.3.9
+    with:
+      artifact_file: ${{ needs.prepare.outputs.additional_artifact_file }}
+      gradle_task: :neoforge:publishModrinth
+      sync_project: false
+      release_body: ${{ needs.prepare.outputs.release_body }}
+      project_id: ${{ needs.modrinth-fabric.outputs.project_id }}
+    secrets:
+      modrinth_token: ${{ secrets.MODRINTH_TOKEN }}
+
+  curseforge-fabric:
     needs: prepare
     permissions:
       contents: read
     uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-curseforge.yml@v2.3.9
     with:
       artifact_file: ${{ needs.prepare.outputs.artifact_file }}
+      gradle_task: :fabric:publishCurseforge
+      release_body: ${{ needs.prepare.outputs.release_body }}
+      project_id: ${{ vars.CURSEFORGE_PROJECT_ID }}
+      project_slug: brainagelib
+    secrets:
+      curseforge_token: ${{ secrets.CURSEFORGE_TOKEN }}
+
+  curseforge-neoforge:
+    needs:
+      - prepare
+      - curseforge-fabric
+    permissions:
+      contents: read
+    uses: brainage04/FabricModdingConventions/.github/workflows/reusable-publish-curseforge.yml@v2.3.9
+    with:
+      artifact_file: ${{ needs.prepare.outputs.additional_artifact_file }}
+      gradle_task: :neoforge:publishCurseforge
       release_body: ${{ needs.prepare.outputs.release_body }}
       project_id: ${{ vars.CURSEFORGE_PROJECT_ID }}
       project_slug: brainagelib

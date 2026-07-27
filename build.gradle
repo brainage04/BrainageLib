@@ -1,63 +1,43 @@
 plugins {
-	id 'maven-publish'
-	id 'io.github.brainage04.client-gametest-recorder' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.production-gametests' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.workspace-dependencies' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.maven-central-publishing' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.mod-publishing' version "${fabricmoddingconventions_version}"
+	id 'base'
+	id 'dev.architectury.loom-no-remap' version "${architectury_loom_version}" apply false
+	id 'dev.architectury.loom' version "${architectury_loom_version}" apply false
 }
 
-repositories {
-	mavenLocal()
-}
-
-workspaceDependencies {
-	siblingMaven("FabricModdingConventions") {
-		coordinate.set("io.github.brainage04:fabricmoddingconventions:${project.fabricmoddingconventions_version}")
+allprojects {
+	group = rootProject.maven_group
+	version = rootProject.mod_version
+	repositories {
+		mavenCentral()
+		mavenLocal()
+		maven { url = 'https://libraries.minecraft.net' }
+		maven { url = 'https://maven.fabricmc.net/' }
+		maven { url = 'https://maven.neoforged.net/releases/' }
+		maven { url = 'https://maven.shedaniel.me/' }
+		maven { url = 'https://maven.terraformersmc.com/releases/' }
 	}
 }
 
-publishing {
-	publications {
-		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
-			from components.java
-		}
+subprojects {
+	plugins.withId('java') {
+		java { withSourcesJar(); sourceCompatibility = JavaVersion.toVersion(rootProject.java_version); targetCompatibility = JavaVersion.toVersion(rootProject.java_version) }
+		tasks.withType(JavaCompile).configureEach { options.release = rootProject.java_version.toInteger() }
 	}
 }
-
-mavenCentralPublishing {
-	repository.set("brainage04/BrainageLib")
-	publicationName.set("BrainageLib")
-	description.set("Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.")
+tasks.register('runClientGameTest') { group = 'verification'; description = 'Runs the Fabric client GameTests.'; dependsOn ':fabric:runClientGameTest' }
+tasks.register('recordClientGameTest') { group = 'verification'; description = 'Records the Fabric client GameTests.'; dependsOn ':fabric:recordClientGameTest' }
+tasks.register('runAllProductionGameTests') {
+	group = 'verification'
+	description = 'Runs Fabric and NeoForge production GameTests.'
+	dependsOn ':fabric:runAllProductionGameTests', ':neoforge:runGameTestServer'
 }
-
-pluginManager.withPlugin("io.github.brainage04.client-gametest-recorder") {
-	clientGameTestRecorder {
-		minecraftOptionsVersion.set("4671")
-		maxFps.set("30")
-		renderDistance.set("5")
-		simulationDistance.set("5")
-		guiScale.set("3")
-	}
+tasks.register('stageFabricReleaseArtifact', Copy) { dependsOn ':fabric:jar'; from project(':fabric').layout.buildDirectory.file("libs/${rootProject.archives_base_name}-${rootProject.mod_version}.jar"); into rootProject.layout.buildDirectory.dir('libs') }
+tasks.register('stageNeoForgeReleaseArtifact', Copy) { dependsOn ':neoforge:jar'; from project(':neoforge').layout.buildDirectory.file("libs/${rootProject.archives_base_name}-neoforge-${rootProject.mod_version}.jar"); into rootProject.layout.buildDirectory.dir('libs') }
+tasks.register('publishAllToMavenCentral') {
+	group = 'publishing'
+	description = 'Uploads both loader publications before finalizing one Maven Central deployment.'
+	dependsOn ':fabric:publishToMavenCentral'
 }
-
-productionGameTests {
-	includeClient.set(true)
-	clientRunDir.set(clientGameTestRecorder.runDir)
-	clientUseXvfb.set(providers.environmentVariable("GTR_RECORDING_MANAGED_XVFB")
-			.map { value -> !value.toBoolean() }
-			.orElse(true))
-}
-
-tasks.named("recordClientGameTest") {
-	runTaskName.set("runProductionClientGameTest")
-}
-
-tasks.named("prepareClientGameTestRun") {
-	mustRunAfter("prepareProductionGameTestRuns")
-}
-
-tasks.matching { it.name == "runProductionClientGameTest" }.configureEach {
-	dependsOn("prepareClientGameTestRun")
-}
+tasks.named('assemble') { dependsOn 'stageFabricReleaseArtifact', 'stageNeoForgeReleaseArtifact' }
+tasks.named('build') { dependsOn subprojects.collect { "${it.path}:build" } }
+tasks.named('clean') { dependsOn subprojects.collect { "${it.path}:clean" } }

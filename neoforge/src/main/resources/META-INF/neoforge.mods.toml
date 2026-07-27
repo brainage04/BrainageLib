@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[11,)"
+license="MIT"
+
+[[mods]]
+modId="brainagelib"
+version="${version}"
+displayName="BrainageLib"
+description='''Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.'''
+authors="brainage04"
+displayURL="https://github.com/brainage04/BrainageLib"
+
+[[dependencies.brainagelib]]
+modId="neoforge"
+type="required"
+versionRange="[26.2,)"
+ordering="NONE"
+side="SERVER"
+
+[[dependencies.brainagelib]]
+modId="minecraft"
+type="required"
+versionRange="[26.2,27)"
+ordering="NONE"
+side="SERVER"
