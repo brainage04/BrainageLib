@@ -24,7 +24,7 @@ subprojects {
 		tasks.withType(JavaCompile).configureEach { options.release = rootProject.java_version.toInteger() }
 	}
 }
-tasks.register('runClientGameTest') { group = 'verification'; description = 'Runs the Fabric client GameTests.'; dependsOn ':fabric:runClientGameTest' }
+tasks.register('runClientGameTest') { group = 'verification'; description = 'Runs the Fabric client GameTests.'; dependsOn ':fabric:runProductionClientGameTest' }
 tasks.register('recordClientGameTest') { group = 'verification'; description = 'Records the Fabric client GameTests.'; dependsOn ':fabric:recordClientGameTest' }
 tasks.register('runAllProductionGameTests') {
 	group = 'verification'
