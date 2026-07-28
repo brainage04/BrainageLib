@@ -10,7 +10,7 @@ BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.2. It 
 
 ## Dependency
 
-BrainageLib 1.0.0 is published to Maven Central as `io.github.brainage04:brainagelib:1.0.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.0.0` for NeoForge. GitHub Release artifacts are an artifact-only fallback.
+BrainageLib 1.0.1 is published to Maven Central as `io.github.brainage04:brainagelib:1.0.1` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.0.1` for NeoForge. GitHub Release artifacts are an artifact-only fallback.
 
 ```groovy
 repositories {
@@ -32,8 +32,8 @@ repositories {
 }
 
 dependencies {
-    implementation "io.github.brainage04:brainagelib:1.0.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:1.0.0"
+    implementation "io.github.brainage04:brainagelib:1.0.1"
+    productionRuntimeMods "io.github.brainage04:brainagelib:1.0.1"
 }
 ```
 
@@ -41,7 +41,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:1.0.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:1.0.1"
 }
 ```
 
