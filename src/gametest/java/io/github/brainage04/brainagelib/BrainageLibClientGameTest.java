@@ -7,7 +7,7 @@ import io.github.brainage04.fabricmoddingconventions.ClientGameTestRecorder;
 import io.github.brainage04.fabricmoddingconventions.ClientGameTestServers;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
-import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
@@ -36,54 +36,51 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
         registerFixtureEntries();
         Properties serverProperties = ClientGameTestServers.flatServerProperties();
 
-        try (TestDedicatedServerContext server = context.worldBuilder().createServer(serverProperties)) {
-            ClientGameTestServers.connectToDedicatedServer(context, server, "BrainageLib servermods feedback recording GameTest");
-            try {
-                server.runOnServer(minecraftServer -> prepareAndAssertServer(
-                        minecraftServer,
-                        minecraftServer.getPlayerList().getPlayers().getFirst()));
-                ClientGameTestServers.assertClientWorldAndPlayerAvailable(context);
-                context.waitTicks(20);
-                assertClientCommandTree(context);
-                context.runOnClient(client -> client.setScreenAndShow(new ChatScreen("", false)));
-                ClientGameTestRecorder.startRecording(context);
-
-                runCommand(context, "servermods help");
-                context.waitTicks(20);
-                ClientGameTestRecorder.showStep(
-                        context,
-                        "servermods-help",
-                        "Installed server-mod help",
-                        "/servermods help lists the player-facing help commands for both deterministic fixture mods."
-                );
-                context.waitTicks(60);
-
-                runCommand(context, "servermods config");
-                context.waitTicks(20);
-                ClientGameTestRecorder.showStep(
-                        context,
-                        "servermods-config",
-                        "Operator configuration commands",
-                        "/servermods config lists the fixture's operator configuration command alongside the library's neutral and success-styled feedback."
-                );
-                context.waitTicks(60);
-
-                runCommand(context, "servermods unavailable");
-                context.waitTicks(20);
-                ClientGameTestRecorder.showStep(
-                        context,
-                        "servermods-invalid-command",
-                        "Invalid subcommand feedback",
-                        "The command's real Brigadier failure feedback is visible in chat after the help and configuration listings."
-                );
-                context.waitTicks(60);
-            } finally {
-                ServerModHelpRegistry.unregister(OPERATOR_CONFIG);
-                ServerModHelpRegistry.unregister(PLAYER_HELP);
-                context.runOnClient(client -> client.setScreenAndShow(null));
-                ClientGameTestServers.disconnectFromDedicatedServer(context);
-            }
-        }
+        ClientGameTestServers.withDedicatedServer(context, serverProperties, "BrainageLib servermods feedback recording GameTest", server -> { try {
+            server.runOnServer(minecraftServer -> prepareAndAssertServer(
+                    minecraftServer,
+                    minecraftServer.getPlayerList().getPlayers().getFirst()));
+            ClientGameTestServers.assertClientWorldAndPlayerAvailable(context);
+            context.waitTicks(20);
+            assertClientCommandTree(context);
+            context.runOnClient(client -> client.setScreenAndShow(new ChatScreen("", false)));
+            ClientGameTestRecorder.startRecording(context);
+        
+            runCommand(context, "servermods help");
+            context.waitTicks(20);
+            ClientGameTestRecorder.showStep(
+                    context,
+                    "servermods-help",
+                    "Installed server-mod help",
+                    "/servermods help lists the player-facing help commands for both deterministic fixture mods."
+            );
+            context.waitTicks(60);
+        
+            runCommand(context, "servermods config");
+            context.waitTicks(20);
+            ClientGameTestRecorder.showStep(
+                    context,
+                    "servermods-config",
+                    "Operator configuration commands",
+                    "/servermods config lists the fixture's operator configuration command alongside the library's neutral and success-styled feedback."
+            );
+            context.waitTicks(60);
+        
+            runCommand(context, "servermods unavailable");
+            context.waitTicks(20);
+            ClientGameTestRecorder.showStep(
+                    context,
+                    "servermods-invalid-command",
+                    "Invalid subcommand feedback",
+                    "The command's real Brigadier failure feedback is visible in chat after the help and configuration listings."
+            );
+            context.waitTicks(60);
+        } finally {
+            ServerModHelpRegistry.unregister(OPERATOR_CONFIG);
+            ServerModHelpRegistry.unregister(PLAYER_HELP);
+            context.runOnClient(client -> client.setScreenAndShow(null));
+            ;
+        } });
     }
 
     private static void registerFixtureEntries() {
