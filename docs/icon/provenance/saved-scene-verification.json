@@ -1,0 +1,16 @@
+[
+  {
+    "name": "brainage-lib-01-matched",
+    "saved_geometry_matches": true,
+    "active_textures_all_packed": true,
+    "packed_scripts_match": true,
+    "blender_version": "5.1.1",
+    "engine": "CYCLES",
+    "device": "CPU",
+    "samples": 64,
+    "object_count": 7,
+    "packed_texture_count": 1,
+    "active_texture_count": 1,
+    "unused_retained_source_textures": []
+  }
+]

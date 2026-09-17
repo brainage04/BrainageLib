@@ -1,0 +1,16 @@
+[
+  {
+    "name": "brainage-lib-01-matched",
+    "blender": "5.1.1",
+    "engine": "CYCLES",
+    "device": "CPU",
+    "samples": 64,
+    "duration_seconds": 27.538647848996334,
+    "retained_geometry_sha256": "17d53004bb9c9bd3d319cbf552d144263d7c5acf464894d4042eb025b0e4d0e8",
+    "removed_objects": [
+      "GREEN PLUS on front top-right",
+      "Plus horizontal bar",
+      "Plus vertical bar"
+    ]
+  }
+]

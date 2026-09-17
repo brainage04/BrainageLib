@@ -1,0 +1,26 @@
+{
+  "directory": "blender-n",
+  "portfolio_tracked_file_edits": false,
+  "portfolio_git_commands_or_commits": false,
+  "all_writes_within_own_directory": true,
+  "scripts_preserved_and_hashed": true,
+  "temporary_files_removed": [
+    "inspect_packing.py",
+    "__pycache__/author.cpython-313.pyc"
+  ],
+  "render_processes_exited": true,
+  "process_check": "pgrep -af /blender-n/(render_all|magic-carpet|brainage-lib|verify_saved) returned no processes, exit 1. All foreground/background CLI jobs exited successfully.",
+  "services_started": [],
+  "displays_started": [],
+  "audio_devices_started": [],
+  "GPU_devices_allocated": false,
+  "renderer": "Blender 5.1.1; headless CLI -noaudio; Cycles CPU; 2 threads per renderer; sequential final batch",
+  "shared_renderer_cgroup": {
+    "cpu.max": "800000 100000",
+    "cpu.weight": "50",
+    "quota_cores": 8
+  },
+  "remaining_resources": [],
+  "resolved_environment_issue": "The prior Blender store path was pruned. FixHubs2 re-provisioned the same Blender 5.1.1 path with nix build. No asset or design blockers remain.",
+  "cleanup_note": "Original orphan glint/enchanted_hit image datablocks remain packed in the approved-source-derived blends, but are unused; exact active particle textures are independently checked in verify_saved.py and listed per image."
+}

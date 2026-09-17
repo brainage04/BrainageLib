@@ -1,0 +1,10 @@
+{
+  "policy": "Saved scripts and SHA-256 hashes, no Git commits, per explicit parent clarification. Entrypoints and author.py are embedded in every packed blend.",
+  "sha256": {
+    "author.py": "98cb3abe061b5dc0dc604a2bbb1782497beebaef8a13ed67097cdc7ead65ce38",
+    "render_all.py": "db0aa67cceddf57539006f6506e6c9514e601b794923f68996a3b8aa1e13417b",
+    "verify_saved.py": "cd6ad6928e432632cc28d9b0bbf229838dd65fcf15552147782b874d05b6de8c",
+    "verify_pngs.py": "605946103cdc873bc9ce6c9d8d78d8d06d4ab77036815fe9558e6632c067c808",
+    "brainage-lib-01-matched.py": "6a517f8d83e089ee2a6c8b49bb59e76769cb850339a5751a45a08d23ab0ae19e"
+  }
+}

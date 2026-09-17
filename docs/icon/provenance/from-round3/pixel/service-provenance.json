@@ -1,0 +1,23 @@
+{
+  "url": "http://127.0.0.1:4383/headiso",
+  "method": "POST multipart skin",
+  "skin_sha256": "e9ebbeece495d9c96040e235dc865fdb1a530cf6a2243a6c8fcec22e72f03e3f",
+  "png_sha256": "2c8f4b74f8cc6d9630aeec5530fb7339f183ce4257379c85aee86d4524e9d46f",
+  "decoded_size": [
+    512,
+    512
+  ],
+  "mode": "RGBA",
+  "response_headers": {
+    "content-type": "image/png",
+    "cache-control": "public, max-age=54000",
+    "etag": "adae719602119bd",
+    "x-request-id": "e81fac8a-66aa-477e-991a-525ef8ee178a",
+    "access-control-allow-origin": "*",
+    "content-length": "31001",
+    "connection": "close",
+    "date": "Wed, 09 Sep 2026 14:37:11 GMT"
+  },
+  "layers": "Default both; nolayers not sent",
+  "documentation": "https://github.com/NickAcPT/nmsr-rs/blob/bf87e8275005601c12768a9d74c016d0337d58b0/nmsr-aas/src/routes/extractors.rs"
+}

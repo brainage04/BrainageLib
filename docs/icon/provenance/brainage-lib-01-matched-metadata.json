@@ -1,0 +1,96 @@
+{
+  "name": "brainage-lib-01-matched",
+  "project": "BrainageLib",
+  "label": "Approved NPCAddons head minus plus \u00b7 matched 64 samples",
+  "source": "sources/npc-addons-approved.blend",
+  "blender_version": "5.1.1",
+  "engine": "CYCLES",
+  "device": "CPU",
+  "samples": 64,
+  "adaptive_sampling": true,
+  "adaptive_threshold": 0.009999999776482582,
+  "seed": 0,
+  "render_duration_seconds": 27.538647848996334,
+  "resolution": [
+    1024,
+    1024
+  ],
+  "subject_screen_bounds": [
+    0.13841186463832855,
+    0.08247369527816772,
+    0.8615891933441162,
+    0.91752690076828
+  ],
+  "changes": {
+    "removed_objects": [
+      "Plus horizontal bar",
+      "Plus vertical bar",
+      "GREEN PLUS on front top-right"
+    ],
+    "removed_plus_depth_blocks": 0.05999999865889549,
+    "nmsr_equivalent_yaw_degrees": 45.0,
+    "camera_elevation_degrees": 35.264389682754654,
+    "preserved": "Every non-plus object, vertex, polygon, UV, world transform, parent, material, skin texel, camera, light, world, compositor and view transform.",
+    "candidate_difference": "Candidate 1 preserves approved 64-sample setting; candidate 2 only raises maximum samples to 128. Both use original seed, denoising and framing."
+  },
+  "geometry_diff": {
+    "removed_objects": [
+      "GREEN PLUS on front top-right",
+      "Plus horizontal bar",
+      "Plus vertical bar"
+    ],
+    "added_objects": [],
+    "changed_objects": [],
+    "retained_objects": 7,
+    "retained_geometry_identical": true,
+    "before_retained_sha256": "17d53004bb9c9bd3d319cbf552d144263d7c5acf464894d4042eb025b0e4d0e8",
+    "after_retained_sha256": "17d53004bb9c9bd3d319cbf552d144263d7c5acf464894d4042eb025b0e4d0e8",
+    "before_object_hashes": {
+      "Isometric composition": "0077ff21a4d834343c78e6cb358d505c40d0662c3999fee452ba37658d55f526",
+      "Large soft key": "28d88d3a3016ae31a9421c93c1ae50b212775abedc1218329706bc8b5f39a61e",
+      "Neutral fill": "070e6365afda93a6c9cb550de696141280a22b69f0e8f733adc40eebef285ee8",
+      "Soft rear edge": "83a226ada89f277ffa3549f3521ed53ded9f3787901c79ce59e219c172b970d4",
+      "Supplied skin head": "98f59f6544e92aa0d9897308e04e6d472248a2da061fd7530c8cad111882bee8",
+      "Base head": "59e71d07a779ab92dce32eba158c128775134a850e7265c3ac676b5012c247cf",
+      "Outer hat layer": "4d4238a1960aa881350b25ee811f9b152507448f0e3541d2d46b3eacd76a1fb6",
+      "GREEN PLUS on front top-right": "27025cf122156950bc8afb88e8e685f163f471563ef6daf84d1e4fe0735e1918",
+      "Plus horizontal bar": "1401435179491771c85025ae4499402d5b442c392ee5b53633b05218c3fe8713",
+      "Plus vertical bar": "1bb8b2d4d66b6b08f1f9039924b3b8d6b9bf8789c8c16f5010153accd95f3869"
+    },
+    "after_object_hashes": {
+      "Isometric composition": "0077ff21a4d834343c78e6cb358d505c40d0662c3999fee452ba37658d55f526",
+      "Large soft key": "28d88d3a3016ae31a9421c93c1ae50b212775abedc1218329706bc8b5f39a61e",
+      "Neutral fill": "070e6365afda93a6c9cb550de696141280a22b69f0e8f733adc40eebef285ee8",
+      "Soft rear edge": "83a226ada89f277ffa3549f3521ed53ded9f3787901c79ce59e219c172b970d4",
+      "Supplied skin head": "98f59f6544e92aa0d9897308e04e6d472248a2da061fd7530c8cad111882bee8",
+      "Base head": "59e71d07a779ab92dce32eba158c128775134a850e7265c3ac676b5012c247cf",
+      "Outer hat layer": "4d4238a1960aa881350b25ee811f9b152507448f0e3541d2d46b3eacd76a1fb6"
+    },
+    "world_compositor_view_unchanged": true,
+    "all_original_materials_unchanged": true
+  },
+  "packed_textures": [
+    {
+      "name": "supplied-skin.png",
+      "sha256": "e9ebbeece495d9c96040e235dc865fdb1a530cf6a2243a6c8fcec22e72f03e3f",
+      "bytes": 241
+    }
+  ],
+  "resources": {
+    "display": null,
+    "audio": null,
+    "gpu": null,
+    "background": true,
+    "noaudio": true,
+    "threads": 2
+  },
+  "hashes": {
+    "source_blend": "b948b5a03da4269ebed8e82246892e185ddf41b06f3421cf5d571b1f171099d1",
+    "script": "98cb3abe061b5dc0dc604a2bbb1782497beebaef8a13ed67097cdc7ead65ce38",
+    "entrypoint": "6a517f8d83e089ee2a6c8b49bb59e76769cb850339a5751a45a08d23ab0ae19e",
+    "blend": "5610721fcd6c1ff0a6b9781e2605a032f0c1a12d477d2e536a089035d1992986",
+    "png": "c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78"
+  },
+  "png_opened": true,
+  "decoded_pixel_standard_deviation": 0.30125296115875244
+}

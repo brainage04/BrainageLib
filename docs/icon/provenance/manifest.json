@@ -1,0 +1,10 @@
+[
+  {
+    "project": "BrainageLib",
+    "label": "Approved NPCAddons head minus plus \u00b7 matched 64 samples",
+    "path": "blender-n/brainage-lib-01-matched.png",
+    "method": "Blender 5.1.1; headless CLI -noaudio; Cycles CPU; 64 maximum samples (adaptive sampling True, threshold 0.01); 2 threads; 1024\u00d71024 PNG; render duration 27.538648 seconds.",
+    "source": "Approved blender-h/npc-addons-head-2.blend; supplied skin /home/thomas/Downloads/6b252bfa5cbcdd98.png, SHA256 e9ebbeece495d9c96040e235dc865fdb1a530cf6a2243a6c8fcec22e72f03e3f, packed unchanged.",
+    "notes": "Exact approved NPCAddons head-2 packed scene minus the two plus bars and their empty parent. Removed plus depth 0.06 block. NMSR-equivalent yaw +45\u00b0, elevation 35.264389682754654\u00b0. All retained geometry/UVs/transforms, supplied skin, materials, camera, lights, world and compositor unchanged, independently verified by saved-blend geometry hashes. Candidate 1 retains approved 64 samples; candidate 2 changes only maximum samples to 128. Script brainage-lib-01-matched.py + author.py and packed brainage-lib-01-matched.blend adjacent; full metadata brainage-lib-01-matched-metadata.json."
+  }
+]

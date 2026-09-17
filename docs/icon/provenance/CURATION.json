@@ -1,0 +1,89 @@
+{
+  "mod": "BrainageLib",
+  "source_folder": "round3/blender-n",
+  "source_folder_absolute": "/home/thomas/01_TM/Coding/Websites/brainage04.github.io/.local-icon-variants/round3/blender-n",
+  "icon_source": "blender-n/brainage-lib-01-matched.png",
+  "icon_sha256_source": "c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78",
+  "icon_sha256_copy": "c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78",
+  "icon_dimensions": [
+    1024,
+    1024
+  ],
+  "files_copied": [
+    "author.py",
+    "brainage-lib-01-matched-metadata.json",
+    "brainage-lib-01-matched.blend",
+    "brainage-lib-01-matched.py",
+    "cleanup-report.json",
+    "manifest.json",
+    "png-verification.json",
+    "render-summary.json",
+    "render_all.py",
+    "saved-scene-verification.json",
+    "script-hashes.json",
+    "sources/npc-addons-approved.blend",
+    "verify_pngs.py",
+    "verify_saved.py",
+    "visual-review.json"
+  ],
+  "file_count_copied": 15,
+  "json_curation": [
+    {
+      "file": "manifest.json",
+      "curation": "kept only the BrainageLib 01-matched entry; MagicCarpet entries belong to another mod"
+    },
+    {
+      "file": "png-verification.json",
+      "curation": "kept the brainage-lib-01-matched row only"
+    },
+    {
+      "file": "render-summary.json",
+      "curation": "kept the brainage-lib-01-matched row only"
+    },
+    {
+      "file": "saved-scene-verification.json",
+      "curation": "kept the brainage-lib-01-matched row only"
+    },
+    {
+      "file": "visual-review.json",
+      "curation": "kept the brainage-lib-01-matched review row; the folder author recommendation (02-refined) and MagicCarpet rows were dropped"
+    },
+    {
+      "file": "script-hashes.json",
+      "curation": "kept hashes of the scripts and entrypoint shipped here"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "blender-n/magic-carpet-*.{py,blend,png,log,metadata.json}",
+      "reason": "another mod's candidates"
+    },
+    {
+      "path": "blender-n/textures/*",
+      "reason": "vanilla particle textures used only by the MagicCarpet candidates"
+    },
+    {
+      "path": "blender-n/sources/{magic-carpet-approved.blend,carpet-color-probes.json,enchant.json,end_rod.json}",
+      "reason": "MagicCarpet-only inputs"
+    },
+    {
+      "path": "blender-n/brainage-lib-02-refined.*",
+      "reason": "retired sibling candidate; owner selected 01-matched"
+    },
+    {
+      "path": "blender-n/blockers.json",
+      "reason": "empty blocker list"
+    }
+  ],
+  "bytes_added_total": 1300330,
+  "deliverable": {
+    "icon": "icon.png",
+    "icon_sha256_round3_source": "c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78",
+    "icon_sha256_shipped_copy": "c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78",
+    "provenance_file_count": 15,
+    "total_file_count": 18,
+    "total_bytes": 1307718,
+    "largest_file": "icon.png",
+    "largest_file_bytes": 1057584
+  }
+}

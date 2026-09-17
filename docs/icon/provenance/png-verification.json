@@ -1,0 +1,24 @@
+[
+  {
+    "name": "brainage-lib-01-matched",
+    "PNG_decoded": true,
+    "resolution": [
+      1024,
+      1024
+    ],
+    "opaque": true,
+    "dark_corner_mean_RGB": [
+      9.076875,
+      12.97546875,
+      19.5628125
+    ],
+    "saturated_green_plus_pixels": 0,
+    "head_yellow_bounds_pixels": [
+      142,
+      111,
+      881,
+      939
+    ],
+    "retained_geometry_identical": true
+  }
+]

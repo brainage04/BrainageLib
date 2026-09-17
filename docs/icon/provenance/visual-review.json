@@ -1,0 +1,16 @@
+{
+  "method": "Opened all five final 1024x1024 PNGs individually through the image reader and compared them with both approved reference PNGs.",
+  "images": [
+    {
+      "path": "brainage-lib-01-matched.png",
+      "review": "Matches approved NPCAddons head orientation, framing, skin overlay, color and lighting; green plus absent and the underlying eye/glasses visible. No other geometry changes.",
+      "passed": true
+    }
+  ],
+  "programmatic_proof": [
+    "saved-scene-verification.json",
+    "png-verification.json",
+    "render-summary.json",
+    "per-image metadata geometry_diff"
+  ]
+}
