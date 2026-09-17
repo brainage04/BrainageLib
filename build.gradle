@@ -1,43 +1,9 @@
 plugins {
-	id 'base'
-	id 'dev.architectury.loom-no-remap' version "${architectury_loom_version}" apply false
-	id 'dev.architectury.loom' version "${architectury_loom_version}" apply false
+	id 'io.github.brainage04.multiloader-mod-conventions' version "${fabricmoddingconventions_version}"
 }
 
-allprojects {
-	group = rootProject.maven_group
-	version = rootProject.mod_version
-	repositories {
-		mavenCentral()
-		mavenLocal()
-		maven { url = 'https://libraries.minecraft.net' }
-		maven { url = 'https://maven.fabricmc.net/' }
-		maven { url = 'https://maven.neoforged.net/releases/' }
-		maven { url = 'https://maven.shedaniel.me/' }
-		maven { url = 'https://maven.terraformersmc.com/releases/' }
-	}
-}
-
-subprojects {
-	plugins.withId('java') {
-		java { withSourcesJar(); sourceCompatibility = JavaVersion.toVersion(rootProject.java_version); targetCompatibility = JavaVersion.toVersion(rootProject.java_version) }
-		tasks.withType(JavaCompile).configureEach { options.release = rootProject.java_version.toInteger() }
-	}
-}
-tasks.register('runClientGameTest') { group = 'verification'; description = 'Runs the Fabric client GameTests.'; dependsOn ':fabric:runProductionClientGameTest' }
-tasks.register('recordClientGameTest') { group = 'verification'; description = 'Records the Fabric client GameTests.'; dependsOn ':fabric:recordClientGameTest' }
-tasks.register('runAllProductionGameTests') {
-	group = 'verification'
-	description = 'Runs Fabric and NeoForge production GameTests.'
-	dependsOn ':fabric:runAllProductionGameTests', ':neoforge:runGameTestServer'
-}
-tasks.register('stageFabricReleaseArtifact', Copy) { dependsOn ':fabric:jar'; from project(':fabric').layout.buildDirectory.file("libs/${rootProject.archives_base_name}-${rootProject.mod_version}.jar"); into rootProject.layout.buildDirectory.dir('libs') }
-tasks.register('stageNeoForgeReleaseArtifact', Copy) { dependsOn ':neoforge:jar'; from project(':neoforge').layout.buildDirectory.file("libs/${rootProject.archives_base_name}-neoforge-${rootProject.mod_version}.jar"); into rootProject.layout.buildDirectory.dir('libs') }
 tasks.register('publishAllToMavenCentral') {
 	group = 'publishing'
 	description = 'Uploads both loader publications before finalizing one Maven Central deployment.'
 	dependsOn ':fabric:publishToMavenCentral'
 }
-tasks.named('assemble') { dependsOn 'stageFabricReleaseArtifact', 'stageNeoForgeReleaseArtifact' }
-tasks.named('build') { dependsOn subprojects.collect { "${it.path}:build" } }
-tasks.named('clean') { dependsOn subprojects.collect { "${it.path}:clean" } }

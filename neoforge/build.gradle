@@ -1,12 +1,5 @@
 plugins {
-	id 'dev.architectury.loom-no-remap'
-	id 'dev.architectury.loom'
 	id 'io.github.brainage04.maven-central-publishing' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.mod-publishing' version "${fabricmoddingconventions_version}"
-}
-
-base {
-	archivesName = "${rootProject.archives_base_name}-neoforge"
 }
 
 mavenCentralPublishing {
@@ -16,83 +9,9 @@ mavenCentralPublishing {
 	localRepository.set(rootProject.layout.buildDirectory.dir('local-repo'))
 }
 
-modPublishing {
-	version.set("${rootProject.mod_version}-neoforge")
-	releaseTag.set("v${rootProject.mod_version}")
-	displayName.set("${rootProject.mod_name} ${rootProject.mod_version} (NeoForge)")
-	modLoaders.set(['neoforge'])
-	fabricModJson.set(rootProject.layout.projectDirectory.file('fabric/build/resources/main/fabric.mod.json'))
-	licenseFile.set(rootProject.layout.projectDirectory.file('LICENSE'))
-	modrinth.projectConfig.set(rootProject.layout.projectDirectory.file('.modrinth/project.json'))
-	curseforge.client.set(false)
-	curseforge.server.set(true)
-}
-
-tasks.named('validateModPublication') {
-	dependsOn ':fabric:processResources'
-}
-
-sourceSets {
-	gametest {
-		compileClasspath += sourceSets.main.output + configurations.compileClasspath
-		runtimeClasspath += output + compileClasspath + configurations.runtimeClasspath
-	}
-}
-
-loom {
-	mods {
-		main {
-			sourceSet sourceSets.main
-			sourceSet project(':common').sourceSets.main
-			sourceSet sourceSets.gametest
-		}
-	}
-	runs {
-		gameTestServer {
-			server()
-			forgeTemplate 'gameTestServer'
-			name 'NeoForge Game Tests'
-			source sourceSets.gametest
-			runDir 'run/gametest'
-		}
-	}
-}
-
-configurations {
-	common {
-		canBeResolved = true
-		canBeConsumed = false
-	}
-	compileClasspath.extendsFrom common
-}
-
-dependencies {
-	minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
-	neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
-	common(project(':common')) { transitive = false }
-}
-
-processResources {
-	inputs.property 'version', project.version
-	filesMatching('META-INF/neoforge.mods.toml') {
-		expand version: project.version
-	}
-}
-
 tasks.register('javadocJar', Jar) {
 	archiveClassifier = 'javadoc'
 	from rootProject.file('README.md')
-}
-
-tasks.named('jar') {
-	from project(':common').sourceSets.main.output
-	from(rootProject.file('LICENSE')) {
-		rename { "${it}_${rootProject.archives_base_name}-neoforge" }
-	}
-}
-
-tasks.named('sourcesJar') {
-	from project(':common').sourceSets.main.allSource
 }
 
 publishing {

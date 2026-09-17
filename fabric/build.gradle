@@ -1,29 +1,31 @@
 plugins {
-	id 'io.github.brainage04.fabric-mod-conventions' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.client-gametest-recorder' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.production-gametests' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.workspace-dependencies' version "${fabricmoddingconventions_version}"
 	id 'io.github.brainage04.maven-central-publishing' version "${fabricmoddingconventions_version}"
-	id 'io.github.brainage04.mod-publishing' version "${fabricmoddingconventions_version}"
 }
-base { archivesName = rootProject.archives_base_name }
-fabricModConventions {
-	licenseFile.set(rootProject.layout.projectDirectory.file('LICENSE'))
+
+mavenCentralPublishing {
+	repository.set('brainage04/BrainageLib')
+	publicationName.set(rootProject.mod_name)
+	description.set('Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.')
+	localRepository.set(rootProject.layout.buildDirectory.dir('local-repo'))
 }
-loom { mods { main { sourceSet sourceSets.main; sourceSet project(':common').sourceSets.main } } }
-configurations { common { canBeResolved = true; canBeConsumed = false }; compileClasspath.extendsFrom common; runtimeClasspath.extendsFrom common; developmentFabric.extendsFrom common }
-workspaceDependencies { siblingMaven('FabricModdingConventions') { coordinate.set("io.github.brainage04:fabricmoddingconventions:${project.fabricmoddingconventions_version}"); siblingDirectory.set(rootProject.layout.projectDirectory.dir('../FabricModdingConventions')) } }
-mavenCentralPublishing { repository.set('brainage04/BrainageLib'); publicationName.set(rootProject.mod_name); description.set('Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.'); localRepository.set(rootProject.layout.buildDirectory.dir('local-repo')) }
-modPublishing { curseforge.client.set(false); curseforge.server.set(true) }
-tasks.named('publishToMavenCentral') { dependsOn ':neoforge:publishMavenJavaPublicationToCentralRepository' }
-pluginManager.withPlugin('io.github.brainage04.client-gametest-recorder') { clientGameTestRecorder { minecraftOptionsVersion.set('4671'); maxFps.set('30'); renderDistance.set('5'); simulationDistance.set('5'); guiScale.set('3') } }
-productionGameTests { includeClient.set(true); clientRunDir.set(clientGameTestRecorder.runDir); clientUseXvfb.set(providers.environmentVariable('GTR_RECORDING_MANAGED_XVFB').map { value -> !value.toBoolean() }.orElse(true)) }
-tasks.named('recordClientGameTest') { runTaskName.set('runProductionClientGameTest') }
-tasks.named('prepareClientGameTestRun') { mustRunAfter('prepareProductionGameTestRuns') }
-tasks.matching { it.name == 'runProductionClientGameTest' }.configureEach { dependsOn('prepareClientGameTestRun') }
-dependencies { common(project(':common')) { transitive = false }; implementation "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"; testImplementation "net.fabricmc:fabric-loader-junit:${rootProject.loader_version}"; testImplementation project(':common') }
-tasks.register('javadocJar', Jar) { archiveClassifier = 'javadoc'; from rootProject.file('README.md') }
-tasks.named('jar') { from project(':common').sourceSets.main.output }
-tasks.named('sourcesJar') { from project(':common').sourceSets.main.allSource }
-publishing { publications { create('mavenJava', MavenPublication) { artifactId = rootProject.archives_base_name; from components.java; artifact tasks.named('javadocJar') } } }
-test { useJUnitPlatform(); systemProperty 'fabric.side', 'server' }
+
+tasks.named('publishToMavenCentral') {
+	dependsOn ':neoforge:publishMavenJavaPublicationToCentralRepository'
+}
+
+clientGameTestRecorder { guiScale.set('3') }
+
+tasks.register('javadocJar', Jar) {
+	archiveClassifier = 'javadoc'
+	from rootProject.file('README.md')
+}
+
+publishing {
+	publications {
+		create('mavenJava', MavenPublication) {
+			artifactId = rootProject.archives_base_name
+			from components.java
+			artifact tasks.named('javadocJar')
+		}
+	}
+}
