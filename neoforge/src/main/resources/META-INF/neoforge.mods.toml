@@ -6,6 +6,7 @@ license="MIT"
 modId="brainagelib"
 version="${version}"
 displayName="BrainageLib"
+logoFile="assets/brainagelib/icon.png"
 description='''Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.'''
 authors="brainage04"
 displayURL="https://github.com/brainage04/BrainageLib"
