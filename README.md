@@ -5,7 +5,7 @@ BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.2. It 
 ## Requirements
 
 - Minecraft 26.2
-- Fabric Loader 0.19.3 or newer with Fabric API, or NeoForge 26.2.0.23-beta or newer
+- Fabric Loader 0.19.3 or newer with Fabric API, or NeoForge 26.2.0.88 or newer
 - Java 25 or newer
 
 ## Dependency
