@@ -1,6 +1,7 @@
 modLoader="javafml"
 loaderVersion="[11,)"
 license="MIT"
+issueTrackerURL="https://github.com/brainage04/BrainageLib/issues"
 
 [[mods]]
 modId="brainagelib"
