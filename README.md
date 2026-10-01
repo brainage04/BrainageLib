@@ -10,27 +10,9 @@ BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.2. It 
 
 ## Dependency
 
-BrainageLib 1.0.1 is published to Maven Central as `io.github.brainage04:brainagelib:1.0.1` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.0.1` for NeoForge. GitHub Release artifacts are an artifact-only fallback.
+BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout (see below); the coordinates are `io.github.brainage04:brainagelib:1.0.1` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.0.1` for NeoForge.
 
 ```groovy
-repositories {
-    mavenCentral()
-    ivy {
-        name = "BrainageLibGitHubReleases"
-        url = uri("https://github.com/brainage04/BrainageLib/releases/download")
-        patternLayout {
-            artifact "v[revision]/[artifact]-[revision].[ext]"
-        }
-        metadataSources {
-            artifact()
-        }
-        content {
-            includeModule "io.github.brainage04", "brainagelib"
-            includeModule "io.github.brainage04", "brainagelib-neoforge"
-        }
-    }
-}
-
 dependencies {
     implementation "io.github.brainage04:brainagelib:1.0.1"
     productionRuntimeMods "io.github.brainage04:brainagelib:1.0.1"
@@ -57,7 +39,18 @@ Declare the runtime requirement in `fabric.mod.json`:
 
 For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml`.
 
-For local workspace development, the sibling repository can be preferred through FabricModdingConventions' `workspaceDependencies` component.
+For workspace development, FabricModdingConventions' `workspaceDependencies` component resolves BrainageLib from a sibling checkout's `build/local-repo` (written by `./gradlew publishAllPublicationsToLocalRepository` in `../BrainageLib`):
+
+```groovy
+workspaceDependencies {
+    siblingMaven('BrainageLib') {
+        coordinate.set("io.github.brainage04:brainagelib:1.0.1")
+        siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
+    }
+}
+```
+
+In CI, pass `prepare_siblings: BrainageLib` to the FabricModdingConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
 
 ## Migrating from the Fabric-only release
 
