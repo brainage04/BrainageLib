@@ -104,7 +104,7 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 ./gradlew build
 ```
 
-The root build produces Fabric and NeoForge JARs in `build/libs`; CI invokes `runAllProductionGameTests` to run Fabric production GameTests and the NeoForge GameTest server.
+The root build produces Fabric and NeoForge JARs in `build/libs`; CI invokes `runAllGameTests` to run Fabric production GameTests and the NeoForge GameTests.
 
 ## Publishing
 
