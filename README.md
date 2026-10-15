@@ -52,14 +52,6 @@ workspaceDependencies {
 
 In CI, pass `prepare_siblings: BrainageLib` to the FabricModdingConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
 
-## Migrating from the Fabric-only release
-
-Install exactly one BrainageLib JAR matching the server loader: `brainagelib-<version>.jar` for Fabric or `brainagelib-neoforge-<version>.jar` for NeoForge. Remove the old JAR before switching loaders; do not install both artifacts together.
-
-The mod ID remains `brainagelib`, and its first-join acknowledgement continues to use the world's `brainagelib-first-join-help.json` data file, so existing world state is retained. BrainageLib remains server-side only: install it on the server, not vanilla clients. Dependent Fabric mods require the Fabric artifact and `fabric-api`; dependent NeoForge mods require the NeoForge artifact and declare the same `brainagelib` mod ID in `META-INF/neoforge.mods.toml`.
-
-The root `./gradlew build` produces both loader-specific artifacts under `build/libs`.
-
 ## Command feedback
 
 Create one `ModFeedback` instance per mod and reuse it for player and command-source output:
