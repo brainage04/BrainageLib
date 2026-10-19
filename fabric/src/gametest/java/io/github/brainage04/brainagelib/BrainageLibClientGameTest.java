@@ -4,7 +4,7 @@ import io.github.brainage04.brainagelib.feedback.ModFeedback;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import io.github.brainage04.brainagelib.help.ServerModHelpEntry;
 import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
-import io.github.brainage04.fabricmoddingconventions.ClientGameTestServers;
+import io.github.brainage04.minecraftmodconventions.ClientGameTestServers;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.minecraft.client.gui.components.ChatComponent;

@@ -31,7 +31,7 @@ Declare the runtime requirement in `fabric.mod.json`:
 
 For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml`.
 
-For workspace development, FabricModdingConventions' `workspaceDependencies` component resolves BrainageLib from a sibling checkout's `build/local-repo` (written by `./gradlew --no-daemon publishAllPublicationsToLocalRepository` in `../BrainageLib`):
+For workspace development, MinecraftModConventions' `workspaceDependencies` component resolves BrainageLib from a sibling checkout's `build/local-repo` (written by `./gradlew --no-daemon publishAllPublicationsToLocalRepository` in `../BrainageLib`):
 
 ```groovy
 workspaceDependencies {
@@ -42,7 +42,7 @@ workspaceDependencies {
 }
 ```
 
-In CI, pass `prepare_siblings: BrainageLib` to the FabricModdingConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
+In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
 
 ## Command feedback
 
@@ -83,9 +83,9 @@ On this workspace, run Gradle through `heavy`:
 
 ```shell
 heavy status
-heavy -- ./gradlew --no-daemon build runAllGameTests -Pfabricmoddingconventions.devClientOptions=/nonexistent
+heavy -- ./gradlew --no-daemon build runAllGameTests
 ```
 
 The root build produces Fabric and NeoForge JARs in `build/libs`; CI invokes `runAllGameTests` to run the Fabric production GameTests and the NeoForge GameTests on a NeoForge server against the release JAR.
 
-Builds and CI use FabricModdingConventions 2.4.26.
+Builds and CI use MinecraftModConventions 3.0.1.
