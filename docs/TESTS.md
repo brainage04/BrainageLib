@@ -19,3 +19,14 @@ Classification used `judge_batch` with the same rubric for every original test, 
 - Remove the original `BrainageLibClientGameTest.runTest`: asserts command-tree/fixture wiring, then records commands with fixed pauses but never asserts their chat output.
 
 No original test was classified as redundant. The two retained tests were not manually reread during pruning.
+
+## Coverage gaps and replacements
+
+Before this wave, execution/output of help and config commands, permission denial, feedback formatting/delivery, first-join persistence, and actual client chat had no behavioral coverage.
+
+- Unit tests now cover duplicate/conflicting registrations, immutable snapshots, normalized/invalid help entries, operator-only first-join hints, and feedback component copying/styles.
+- Shared server GameTests execute the actual loader-registered commands, check player/operator output and denial, deliver all three feedback categories, and exercise notice deduplication, disk persistence, reload and clearing. Each body runs on both Fabric and NeoForge, in development and against release JARs.
+- The Fabric client scenario checks real login chat, repeated join suppression, help output, denied and permitted config output, and all three player-feedback methods. It waits for responses rather than assuming a fixed delay is enough.
+- Fixtures unregister in `finally`; persistence tests preserve and restore the world's previous acknowledgement file.
+
+There are no gamerules, configuration screen, or rendering features beyond chat. Remaining manual/integration gaps: audible UI click playback, NeoForge client login/chat, and a real process restart between joins (the server test reloads the persisted file in one process).

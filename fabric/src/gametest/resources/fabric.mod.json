@@ -4,5 +4,9 @@
 	"version": "${mod_version}",
 	"name": "${mod_name} Game Tests",
 	"icon": "assets/brainagelib/icon.png",
-	"environment": "*"
+	"environment": "*",
+	"entrypoints": {
+		"fabric-gametest": ["io.github.brainage04.brainagelib.BrainageLibGameTest"],
+		"fabric-client-gametest": ["io.github.brainage04.brainagelib.BrainageLibClientGameTest"]
+	}
 }
