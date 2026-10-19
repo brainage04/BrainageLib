@@ -59,6 +59,8 @@ FEEDBACK.click(player);
 
 Messages receive a grey `[Example Mod]` prefix and a consistent yellow, green, or red body. The API accepts either components or formatted strings and can send the standard UI click sound directly to a player.
 
+Command-source failures keep the same grey prefix as player errors.
+
 ## Combined server help
 
 Register each installed server mod during initialization:

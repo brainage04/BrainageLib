@@ -43,7 +43,7 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
 
                         clearChat(context);
                         sendCommand(context, "servermods config");
-                        awaitChat(context, "Unknown or incomplete command");
+                        awaitChat(context, "Incorrect argument for command", "config<--[HERE]");
                         if (chat(context).stream().anyMatch(line -> line.contains("/clientoperator config"))) {
                             throw new AssertionError("Non-operator received configuration commands");
                         }

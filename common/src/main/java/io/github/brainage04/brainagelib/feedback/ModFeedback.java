@@ -24,7 +24,7 @@ public final class ModFeedback {
     public int neutral(CommandSourceStack source, String message, Object... arguments) { return neutral(source, literal(message, arguments)); }
     public int success(CommandSourceStack source, Component message, boolean broadcastToOperators) { source.sendSuccess(() -> decorate(ChatFormatting.GREEN, message), broadcastToOperators); return 1; }
     public int success(CommandSourceStack source, String message, boolean broadcastToOperators, Object... arguments) { return success(source, literal(message, arguments), broadcastToOperators); }
-    public int failure(CommandSourceStack source, Component message) { source.sendFailure(decorate(ChatFormatting.RED, message)); return 0; }
+    public int failure(CommandSourceStack source, Component message) { source.sendFailure(Component.empty().append(decorate(ChatFormatting.RED, message))); return 0; }
     public int failure(CommandSourceStack source, String message, Object... arguments) { return failure(source, literal(message, arguments)); }
     public void click(ServerPlayer player) { player.connection.send(new ClientboundSoundPacket(SoundEvents.UI_BUTTON_CLICK, SoundSource.UI, player.getX(), player.getY(), player.getZ(), 0.7F, 1.0F, 0L)); }
     public MutableComponent decorate(ChatFormatting bodyFormatting, Component message) { Objects.requireNonNull(bodyFormatting, "bodyFormatting"); Objects.requireNonNull(message, "message"); return Component.literal("[" + modName + "] ").withStyle(ChatFormatting.GRAY).append(message.copy().withStyle(bodyFormatting)); }

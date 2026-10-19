@@ -9,6 +9,7 @@ import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionSet;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /** The same behavioral bodies run against both loaders' real command dispatchers. */
@@ -73,8 +75,12 @@ public final class BrainageLibGameTests {
         for (int index = 0; index < text.length; index++) {
             Component message = output.messages.get(index);
             context.assertValueEqual(message.getString(), text[index], "Formatted feedback text");
-            context.assertValueEqual(message.getStyle().getColor().getValue(), 0xAAAAAA, "Prefix color");
-            context.assertValueEqual(message.getSiblings().getFirst().getStyle().getColor().getValue(), colors[index], "Feedback body color");
+            List<Integer> visibleColors = new ArrayList<>();
+            message.visit((style, segment) -> {
+                if (!segment.isEmpty()) visibleColors.add(style.getColor().getValue());
+                return Optional.empty();
+            }, Style.EMPTY);
+            context.assertValueEqual(visibleColors, List.of(0xAAAAAA, colors[index]), "Visible prefix and body colors");
         }
         context.succeed();
     }
