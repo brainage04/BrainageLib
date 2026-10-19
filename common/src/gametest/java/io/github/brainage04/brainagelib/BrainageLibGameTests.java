@@ -6,7 +6,6 @@ import io.github.brainage04.brainagelib.feedback.ModFeedback;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import io.github.brainage04.brainagelib.help.ServerModHelpEntry;
 import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
@@ -70,12 +69,12 @@ public final class BrainageLibGameTests {
         context.assertValueEqual(feedback.failure(source, "Cannot save %s", "settings"), 0, "Failure result");
         context.assertValueEqual(output.messages.size(), 3, "Each feedback call must send one message");
         String[] text = {"[Test Tools] Mode: safe", "[Test Tools] Saved settings", "[Test Tools] Cannot save settings"};
-        ChatFormatting[] colors = {ChatFormatting.YELLOW, ChatFormatting.GREEN, ChatFormatting.RED};
+        int[] colors = {0xFFFF55, 0x55FF55, 0xFF5555};
         for (int index = 0; index < text.length; index++) {
             Component message = output.messages.get(index);
             context.assertValueEqual(message.getString(), text[index], "Formatted feedback text");
-            context.assertValueEqual(message.getStyle().getColor().getValue(), ChatFormatting.GRAY.getColor(), "Prefix color");
-            context.assertValueEqual(message.getSiblings().getFirst().getStyle().getColor().getValue(), colors[index].getColor(), "Feedback body color");
+            context.assertValueEqual(message.getStyle().getColor().getValue(), 0xAAAAAA, "Prefix color");
+            context.assertValueEqual(message.getSiblings().getFirst().getStyle().getColor().getValue(), colors[index], "Feedback body color");
         }
         context.succeed();
     }
