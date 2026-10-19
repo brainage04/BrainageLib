@@ -30,3 +30,14 @@ Before this wave, execution/output of help and config commands, permission denia
 - Fixtures unregister in `finally`; persistence tests preserve and restore the world's previous acknowledgement file.
 
 There are no gamerules, configuration screen, or rendering features beyond chat. Remaining manual/integration gaps: audible UI click playback, NeoForge client login/chat, and a real process restart between joins (the server test reloads the persisted file in one process).
+
+## Code review (2026-10-19)
+
+Reviewed all common production classes and both loader entrypoints. No confirmed production bug was found, and the public API is unchanged.
+
+- Both loaders register the same command, server start/stopping/stopped callbacks, and player-join handler.
+- Registry mutation and first-join state are synchronized; command output uses registry snapshots. No background executor or shutdown resource was introduced.
+- State readers/writers use try-with-resources, and replacement uses an atomic move where supported.
+- Help and feedback are intentionally English literals; there are no untranslated gamerule/config keys.
+
+Judgement calls left unchanged: the saved state's schema version is written but not checked on load; unknown-version handling needs a policy if the format changes. State is process-global and assumes Minecraft's usual single active server per JVM. UI click playback and NeoForge client presentation still need integration coverage.
