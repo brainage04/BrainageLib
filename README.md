@@ -98,6 +98,8 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 
 The root build produces Fabric and NeoForge JARs in `build/libs`; CI invokes `runAllGameTests` to run the Fabric production GameTests and the NeoForge GameTests on a NeoForge server against the release JAR.
 
+Builds and CI use FabricModdingConventions 2.4.26.
+
 ## Publishing
 
 Release automation is documented in [docs/RELEASE.md](docs/RELEASE.md). Optional Modrinth publishing is documented in [docs/MODRINTH.md](docs/MODRINTH.md).
