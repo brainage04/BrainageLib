@@ -1,7 +1,0 @@
-{
-  "environment": "minecraft:default",
-  "structure": "fabricmoddingconventions:empty",
-  "max_ticks": 20,
-  "type": "minecraft:function",
-  "function": "brainagelib:servermods_command_is_registered"
-}
