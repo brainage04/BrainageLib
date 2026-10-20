@@ -23,5 +23,8 @@ public final class BrainageLibNeoForgeGameTests {
         event.register(BuiltInRegistries.TEST_FUNCTION.key(),
                 Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, "first_join_acknowledgement_survives_reload"),
                 () -> BrainageLibGameTests::firstJoinAcknowledgementSurvivesReload);
+        event.register(BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, "unreadable_first_join_state_is_not_overwritten"),
+                () -> BrainageLibGameTests::unreadableFirstJoinStateIsNotOverwritten);
     }
 }

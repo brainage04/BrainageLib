@@ -133,6 +133,49 @@ public final class BrainageLibGameTests {
         context.succeed();
     }
 
+    /** A file that failed to load (malformed or a newer schema) must survive a later join and shutdown byte for byte. */
+    public static void unreadableFirstJoinStateIsNotOverwritten(GameTestHelper context) {
+        var server = context.getLevel().getServer();
+        var path = server.getWorldPath(LevelResource.ROOT).resolve("brainagelib-first-join-help.json");
+        var entry = ServerModHelpEntry.playerOnly("gametest_unreadable", "Unreadable Test Tools", "Unreadable tools.", "/unreadable help");
+        byte[] original;
+        try {
+            original = Files.exists(path) ? Files.readAllBytes(path) : null;
+        } catch (IOException exception) {
+            throw new AssertionError("Cannot preserve first-join state", exception);
+        }
+        ServerModHelpRegistry.register(entry);
+        try {
+            for (String document : List.of("{\"schemaVersion\": 1, \"notifiedPlayers\": [", "{\"schemaVersion\": 2, \"notifiedPlayers\": []}")) {
+                byte[] bytes = document.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                Files.write(path, bytes);
+                FirstJoinHelpState.serverStopped();
+                FirstJoinHelpState.serverStarted(server);
+                var player = new CapturedPlayer(context);
+                FirstJoinHelpState.playerJoined(player, server);
+                FirstJoinHelpState.playerJoined(player, server);
+                context.assertValueEqual(player.messages.size(), 1, "The notice still applies for the session: " + document);
+                FirstJoinHelpState.serverStopping(server);
+                FirstJoinHelpState.serverStopped();
+                context.assertTrue(java.util.Arrays.equals(Files.readAllBytes(path), bytes), "Unreadable state must survive a join and shutdown: " + document);
+            }
+        } catch (IOException exception) {
+            throw new AssertionError("First-join persistence failed", exception);
+        } finally {
+            ServerModHelpRegistry.unregister(entry);
+            try {
+                if (original == null) Files.deleteIfExists(path);
+                else Files.write(path, original);
+            } catch (IOException exception) {
+                throw new AssertionError("Cannot restore first-join state", exception);
+            } finally {
+                FirstJoinHelpState.serverStopped();
+                FirstJoinHelpState.serverStarted(server);
+            }
+        }
+        context.succeed();
+    }
+
     private static final class CapturedOutput implements CommandSource {
         private final List<Component> messages = new ArrayList<>();
         @Override public void sendSystemMessage(Component message) { messages.add(message); }

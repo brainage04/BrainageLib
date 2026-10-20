@@ -18,4 +18,9 @@ public final class BrainageLibGameTest {
     public void firstJoinAcknowledgementSurvivesReload(GameTestHelper context) {
         BrainageLibGameTests.firstJoinAcknowledgementSurvivesReload(context);
     }
+
+    @GameTest
+    public void unreadableFirstJoinStateIsNotOverwritten(GameTestHelper context) {
+        BrainageLibGameTests.unreadableFirstJoinStateIsNotOverwritten(context);
+    }
 }
