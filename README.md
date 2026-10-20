@@ -32,6 +32,6 @@ Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your serve
 
 ## Documentation
 
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, command feedback API, help registration, and development.
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, command feedback, help registration, saved files, confirmation windows, GameTest support, and development.
 - [docs/RELEASE.md](docs/RELEASE.md) - release automation.
 - [docs/MODRINTH.md](docs/MODRINTH.md) - optional Modrinth publishing.

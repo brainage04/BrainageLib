@@ -23,4 +23,14 @@ public final class BrainageLibGameTest {
     public void unreadableFirstJoinStateIsNotOverwritten(GameTestHelper context) {
         BrainageLibGameTests.unreadableFirstJoinStateIsNotOverwritten(context);
     }
+
+    @GameTest
+    public void firstJoinStateFromPreviousVersionLoads(GameTestHelper context) {
+        BrainageLibGameTests.firstJoinStateFromPreviousVersionLoads(context);
+    }
+
+    @GameTest
+    public void gameTestPlayerJoinsRunsCommandsAndCleansUp(GameTestHelper context) {
+        BrainageLibGameTests.gameTestPlayerJoinsRunsCommandsAndCleansUp(context);
+    }
 }

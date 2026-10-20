@@ -1,0 +1,80 @@
+import io.github.brainage04.minecraftmodconventions.gradle.multiloader.MinecraftVersionRange
+
+plugins {
+	id 'io.github.brainage04.maven-central-publishing' version "${minecraftmodconventions_version}"
+}
+
+mavenCentralPublishing {
+	repository.set('brainage04/BrainageLib')
+	publicationName.set(rootProject.mod_name)
+	description.set('Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.')
+	localRepository.set(rootProject.layout.buildDirectory.dir('local-repo'))
+}
+
+tasks.named('publishToMavenCentral') {
+	dependsOn ':neoforge:publishMavenJavaPublicationToCentralRepository'
+}
+
+tasks.register('javadocJar', Jar) {
+	archiveClassifier = 'javadoc'
+	from rootProject.file('README.md')
+}
+
+// GameTest fixtures for consumers' test runs, published on their own as brainagelib-gametest. The JAR is a small
+// mod on both loaders so that development and production GameTest runs load it next to the consumer's test mod;
+// it is never part of BrainageLib's runtime JAR.
+sourceSets {
+	testSupport {
+		compileClasspath += sourceSets.main.compileClasspath
+	}
+}
+
+def testSupportExpansion = [
+		version                : project.version.toString(),
+		minecraft_version      : rootProject.minecraft_version,
+		java_version           : rootProject.java_version,
+		minecraft_version_range: MinecraftVersionRange.of(rootProject.minecraft_version),
+]
+
+tasks.named('processTestSupportResources', ProcessResources) {
+	inputs.properties(testSupportExpansion)
+	filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml']) {
+		expand(testSupportExpansion)
+	}
+}
+
+def testSupportJar = tasks.register('testSupportJar', Jar) {
+	group = 'build'
+	description = 'Packages the GameTest fixtures published as brainagelib-gametest.'
+	archiveBaseName = "${rootProject.archives_base_name}-gametest"
+	from sourceSets.testSupport.output
+	from(rootProject.file('LICENSE')) {
+		rename { "${it}_${rootProject.archives_base_name}-gametest" }
+	}
+}
+
+def testSupportSourcesJar = tasks.register('testSupportSourcesJar', Jar) {
+	archiveBaseName = "${rootProject.archives_base_name}-gametest"
+	archiveClassifier = 'sources'
+	from sourceSets.testSupport.allSource
+}
+
+tasks.named('assemble') {
+	dependsOn testSupportJar
+}
+
+publishing {
+	publications {
+		create('mavenJava', MavenPublication) {
+			artifactId = rootProject.archives_base_name
+			from components.java
+			artifact tasks.named('javadocJar')
+		}
+		create('gameTestSupport', MavenPublication) {
+			artifactId = "${rootProject.archives_base_name}-gametest"
+			artifact testSupportJar
+			artifact testSupportSourcesJar
+			artifact tasks.named('javadocJar')
+		}
+	}
+}

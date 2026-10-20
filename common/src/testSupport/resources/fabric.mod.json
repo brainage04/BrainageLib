@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "brainagelib_gametest",
+	"version": "${version}",
+	"name": "BrainageLib GameTest Support",
+	"description": "Test-only GameTest fixtures for mods built on BrainageLib. Not for players or servers.",
+	"authors": ["brainage04"],
+	"contact": {"homepage": "https://github.com/brainage04/BrainageLib", "sources": "https://github.com/brainage04/BrainageLib"},
+	"license": "MIT", "environment": "*",
+	"depends": {"minecraft": "~${minecraft_version}", "java": ">=${java_version}"}
+}

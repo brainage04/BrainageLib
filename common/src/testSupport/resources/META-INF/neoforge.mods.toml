@@ -1,0 +1,19 @@
+modLoader="lowcodefml"
+loaderVersion="[11,)"
+license="MIT"
+issueTrackerURL="https://github.com/brainage04/BrainageLib/issues"
+
+[[mods]]
+modId="brainagelib_gametest"
+version="${version}"
+displayName="BrainageLib GameTest Support"
+description='''Test-only GameTest fixtures for mods built on BrainageLib. Not for players or servers.'''
+authors="brainage04"
+displayURL="https://github.com/brainage04/BrainageLib"
+
+[[dependencies.brainagelib_gametest]]
+modId="minecraft"
+type="required"
+versionRange="${minecraft_version_range}"
+ordering="NONE"
+side="BOTH"

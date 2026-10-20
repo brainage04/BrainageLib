@@ -27,3 +27,8 @@ publishing {
 		}
 	}
 }
+
+// BrainageLib's own GameTests use the published fixtures from source.
+sourceSets.matching { it.name == 'gametest' }.configureEach {
+	java.srcDir(rootProject.file('common/src/testSupport/java'))
+}
