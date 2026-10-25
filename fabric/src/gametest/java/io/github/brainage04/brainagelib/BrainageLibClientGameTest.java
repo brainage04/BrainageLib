@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.feedback.ModFeedback;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import io.github.brainage04.brainagelib.help.ServerModHelpEntry;
 import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
+import io.github.brainage04.minecraftmodconventions.ClientGameTestRecorder;
 import io.github.brainage04.minecraftmodconventions.ClientGameTestServers;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -20,6 +21,8 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
             "brainagelib_client_player", "Client Player Tools", "Client player commands.", "/clientplayer help");
     private static final ServerModHelpEntry OPERATOR_CONFIG = new ServerModHelpEntry(
             "brainagelib_client_operator", "Client Operator Tools", "Client operator commands.", "/clientoperator help", "/clientoperator config");
+    /// Ticks each recorded step stays on screen before the next one starts.
+    private static final int STEP_VISIBLE_TICKS = 50;
 
     @Override
     public void runTest(ClientGameTestContext context) {
@@ -40,6 +43,8 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                                 "Client Operator Tools: Client operator commands. /clientoperator help");
                         long notices = chat(context).stream().filter(line -> line.contains("This server uses")).count();
                         if (notices != 1) throw new AssertionError("Expected exactly one first-join notice, got " + notices);
+                        showStep(context, "brainagelib.help", "One notice, one help list",
+                                "The first-join notice names every server mod once; /servermods help lists them");
 
                         clearChat(context);
                         sendCommand(context, "servermods config");
@@ -47,6 +52,8 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                         if (chat(context).stream().anyMatch(line -> line.contains("/clientoperator config"))) {
                             throw new AssertionError("Non-operator received configuration commands");
                         }
+                        showStep(context, "brainagelib.config.denied", "Configuration needs operator",
+                                "/servermods config is refused for a player without operator permission");
 
                         server.runOnServer(minecraftServer -> minecraftServer.getPlayerList().op(
                                 new NameAndId(minecraftServer.getPlayerList().getPlayers().getFirst().getGameProfile())));
@@ -56,6 +63,8 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                         if (chat(context).stream().anyMatch(line -> line.contains("Client Player Tools"))) {
                             throw new AssertionError("Player-only entry leaked into configuration listing");
                         }
+                        showStep(context, "brainagelib.config", "Operator configuration commands",
+                                "/servermods config lists only the mods that have configuration commands");
 
                         clearChat(context);
                         server.runOnServer(minecraftServer -> {
@@ -66,11 +75,19 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                             feedback.error(player, "Settings rejected");
                         });
                         awaitChat(context, "[Client Test] Mode: safe", "[Client Test] Settings saved", "[Client Test] Settings rejected");
+                        showStep(context, "brainagelib.feedback", "Consistent feedback",
+                                "ModFeedback adds the grey mod-name prefix and colours neutral, success and error messages");
                     });
         } finally {
             ServerModHelpRegistry.unregister(OPERATOR_CONFIG);
             ServerModHelpRegistry.unregister(PLAYER_HELP);
         }
+    }
+
+    /// Captions the recording and leaves the chat on screen long enough to read.
+    private static void showStep(ClientGameTestContext context, String id, String title, String description) {
+        ClientGameTestRecorder.showStep(context, id, title, description);
+        context.waitTicks(STEP_VISIBLE_TICKS);
     }
 
     private static void sendCommand(ClientGameTestContext context, String command) {
