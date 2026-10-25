@@ -2,12 +2,12 @@
 
 ## Dependency
 
-BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:1.1.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.1.0` for NeoForge.
+BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:1.2.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.2.0` for NeoForge.
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:1.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:1.1.0"
+    implementation "io.github.brainage04:brainagelib:1.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:1.2.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:1.1.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:1.2.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`:
 ```json
 {
   "depends": {
-    "brainagelib": ">=1.1.0"
+    "brainagelib": ">=1.2.0"
   }
 }
 ```
@@ -36,7 +36,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:1.1.0")
+        coordinate.set("io.github.brainage04:brainagelib:1.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -110,14 +110,14 @@ Load problems, refused saves and write failures are logged by BrainageLib.
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:1.1.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:1.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:1.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:1.1.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:1.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:1.2.0"
 }
 ```
 
@@ -137,4 +137,4 @@ heavy -- ./gradlew --no-daemon build runAllGameTests
 
 The root build produces Fabric and NeoForge JARs in `build/libs` and `common/build/libs/brainagelib-gametest-<version>.jar`; CI invokes `runAllGameTests` to run the Fabric production GameTests and the NeoForge GameTests on a NeoForge server against the release JAR. BrainageLib's own GameTests compile the GameTest support sources directly.
 
-Builds and CI use MinecraftModConventions 3.0.1.
+Builds and CI use MinecraftModConventions 3.1.0.

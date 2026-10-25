@@ -1,6 +1,6 @@
 # BrainageLib
 
-BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.2. It provides consistent command feedback and one combined first-join help surface for brainage04's server mods. Vanilla clients do not install it.
+BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It provides consistent command feedback and one combined first-join help surface for brainage04's server mods. Vanilla clients do not install it.
 
 On a player's first join to a world, BrainageLib sends one combined notice naming every registered server mod. The acknowledgement is stored by player UUID in `brainagelib-first-join-help.json` in that world's folder, so it persists across restarts and remains independent between worlds.
 
@@ -12,8 +12,8 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 
 ## Getting started
 
-- Minecraft 26.2
-- Fabric Loader 0.19.3 or newer with Fabric API, or NeoForge 26.2.0.88 or newer
+- Minecraft 26.3
+- Fabric Loader 0.19.5 or newer with Fabric API, or NeoForge 26.3.0.99 or newer
 - Java 25 or newer
 - Install BrainageLib on the server alongside the mods that require it.
 
