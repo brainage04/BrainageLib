@@ -1,0 +1,24 @@
+{
+	"required": true,
+	"package": "io.github.brainage04.brainagelib.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"AbstractBedBlockMixin",
+		"BlockMixin",
+		"EnderDragonMixin",
+		"ExperienceOrbAccessor",
+		"ExperienceOrbMixin",
+		"LivingEntityMixin",
+		"RespawnAnchorBlockMixin",
+		"ServerExplosionMixin",
+		"ServerLevelMixin",
+		"ServerPlayerGameModeMixin",
+		"ServerPlayerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

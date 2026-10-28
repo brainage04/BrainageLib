@@ -33,4 +33,39 @@ public final class BrainageLibGameTest {
     public void gameTestPlayerJoinsRunsCommandsAndCleansUp(GameTestHelper context) {
         BrainageLibGameTests.gameTestPlayerJoinsRunsCommandsAndCleansUp(context);
     }
+
+    @GameTest
+    public void highestGoverningPolicyDecides(GameTestHelper context) {
+        DropCaptureGameTests.highestGoverningPolicyDecides(context);
+    }
+
+    @GameTest
+    public void ungovernedPlayerKeepsDropsInWorld(GameTestHelper context) {
+        DropCaptureGameTests.ungovernedPlayerKeepsDropsInWorld(context);
+    }
+
+    @GameTest
+    public void refusedStackStaysWhereItSpawned(GameTestHelper context) {
+        DropCaptureGameTests.refusedStackStaysWhereItSpawned(context);
+    }
+
+    @GameTest
+    public void blockBrokenForAPlayerElsewhereIsCaptured(GameTestHelper context) {
+        DropCaptureGameTests.blockBrokenForAPlayerElsewhereIsCaptured(context);
+    }
+
+    @GameTest
+    public void felledLeafDecayPaysTheFeller(GameTestHelper context) {
+        DropCaptureGameTests.felledLeafDecayPaysTheFeller(context);
+    }
+
+    @GameTest(maxTicks = 100)
+    public void respawnAnchorClickCreditsTheClicker(GameTestHelper context) {
+        DropCaptureGameTests.respawnAnchorClickCreditsTheClicker(context);
+    }
+
+    @GameTest(maxTicks = 100)
+    public void bedClickCreditsTheClicker(GameTestHelper context) {
+        DropCaptureGameTests.bedClickCreditsTheClicker(context);
+    }
 }

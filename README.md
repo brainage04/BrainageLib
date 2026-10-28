@@ -1,6 +1,6 @@
 # BrainageLib
 
-BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It provides consistent command feedback and one combined first-join help surface for brainage04's server mods. Vanilla clients do not install it.
+BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It provides consistent command feedback, one combined first-join help surface and a shared drop capture engine for brainage04's server mods. Vanilla clients do not install it.
 
 On a player's first join to a world, BrainageLib sends one combined notice naming every registered server mod. The acknowledgement is stored by player UUID in `brainagelib-first-join-help.json` in that world's folder, so it persists across restarts and remains independent between worlds.
 
@@ -9,6 +9,7 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 - Messages receive a grey mod-name prefix and a consistent yellow, green, or red body.
 - Combined player help and operator configuration command lists for registered mods.
 - One first-join notice instead of a separate message from each mod.
+- Drop capture shared by Telekinesis and Skyport Minigames: drops and experience from blocks a player breaks, mobs they kill, explosions they cause (including beds and respawn anchors they use) and the decaying leaves of trees they fell go to that player, as the installed mods' rules decide. On its own BrainageLib delivers nothing.
 
 ## Getting started
 
@@ -32,6 +33,6 @@ Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your serve
 
 ## Documentation
 
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, command feedback, help registration, saved files, confirmation windows, GameTest support, and development.
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, command feedback, help registration, saved files, confirmation windows, drop capture, GameTest support, and development.
 - [docs/RELEASE.md](docs/RELEASE.md) - release automation.
 - [docs/MODRINTH.md](docs/MODRINTH.md) - optional Modrinth publishing.

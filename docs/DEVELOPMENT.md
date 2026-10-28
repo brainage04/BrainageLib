@@ -2,12 +2,12 @@
 
 ## Dependency
 
-BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:1.2.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.2.0` for NeoForge.
+BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:1.3.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.3.0` for NeoForge.
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:1.2.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:1.2.0"
+    implementation "io.github.brainage04:brainagelib:1.3.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:1.3.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:1.2.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:1.3.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`:
 ```json
 {
   "depends": {
-    "brainagelib": ">=1.2.0"
+    "brainagelib": ">=1.3.0"
   }
 }
 ```
@@ -36,7 +36,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:1.2.0")
+        coordinate.set("io.github.brainage04:brainagelib:1.3.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -103,6 +103,27 @@ Load problems, refused saves and write failures are logged by BrainageLib.
 
 `ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
 
+## Drop capture
+
+`io.github.brainage04.brainagelib.drops` sends drops and experience to the player responsible for them, for every mod that installs a policy. BrainageLib's own mixins open a capture scope for:
+
+- a block a player breaks (`ServerPlayerGameMode.destroyBlock`, and `Block.dropResources` with a player as breaker for mods that call `playerDestroy` or `Level.destroyBlock` themselves), including a broken container's contents and the block's experience;
+- a mob's death loot and experience, for the player vanilla credits with the kill (`getLastHurtByPlayer` within its 100-tick memory: melee, owned projectiles and potions, a tamed wolf); a killed player's own drops always stay in the world;
+- the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
+- the ender dragon's death-animation experience, for its killer;
+- a decaying leaf of a tree a player felled, when the mod that felled it called `LeafOwners.felled(player, level, logs)`; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute.
+
+Inside a scope, an item entity or experience about to spawn goes to the player instead. What fits goes into the inventory (with the `picked_up` statistic), the rest is moved to the player's feet. Experience repairs Mending items first. A dead player, or one in another dimension, gets nothing.
+
+Whether a player gets anything is decided by `DropPolicy` instances registered with `DropPolicies.register(priority, policy)`. For each player the highest-priority policy that `governs(player)` decides alone: `delivers(player)` says whether drops reach them and `accepts(player, stack)` may refuse single stacks, which then stay where the game spawned them. A player no policy governs keeps every drop in the world, so installing BrainageLib alone changes nothing. Use `DropPolicies.DEFAULT_PRIORITY` for a mod that covers everyone and `DropPolicies.MATCH_PRIORITY` for a minigame that owns its players during a match.
+
+```java
+DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
+    @Override public boolean governs(ServerPlayer player) { return true; }
+    @Override public boolean delivers(ServerPlayer player) { return settings.enabled(player); }
+});
+```
+
 ## GameTest support
 
 `io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
@@ -110,14 +131,14 @@ Load problems, refused saves and write failures are logged by BrainageLib.
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:1.2.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:1.3.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:1.2.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:1.2.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:1.3.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:1.3.0"
 }
 ```
 
