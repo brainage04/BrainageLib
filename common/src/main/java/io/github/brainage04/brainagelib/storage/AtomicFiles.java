@@ -12,11 +12,12 @@ import java.nio.file.StandardCopyOption;
 import java.util.Objects;
 
 /**
- * Replaces a file so that readers see either the old or the new content, never a partly written file.
+ * Replaces a file so that readers see either the old or the new content, never a partly written
+ * file.
  *
- * <p>The new content is written to {@code <name>.tmp} in the target's directory and then moved over the target
- * atomically. File systems without atomic moves fall back to a plain replacing move. The temporary file is deleted
- * when writing or moving fails; the target is then left as it was.
+ * <p>The new content is written to {@code <name>.tmp} in the target's directory and then moved over
+ * the target atomically. File systems without atomic moves fall back to a plain replacing move. The
+ * temporary file is deleted when writing or moving fails; the target is then left as it was.
  */
 public final class AtomicFiles {
     private static final String TEMPORARY_SUFFIX = ".tmp";
@@ -24,7 +25,8 @@ public final class AtomicFiles {
     private AtomicFiles() {}
 
     /** Writes content produced by {@code content} to {@code target}, replacing it atomically. */
-    public static void write(Path target, IOConsumer<? super OutputStream> content) throws IOException {
+    public static void write(Path target, IOConsumer<? super OutputStream> content)
+            throws IOException {
         Objects.requireNonNull(content, "content");
         Path staged = stagingPath(target);
         Path directory = staged.getParent();
@@ -43,13 +45,16 @@ public final class AtomicFiles {
     }
 
     /** Writes UTF-8 text produced by {@code content} to {@code target}, replacing it atomically. */
-    public static void writeText(Path target, IOConsumer<? super Writer> content) throws IOException {
+    public static void writeText(Path target, IOConsumer<? super Writer> content)
+            throws IOException {
         Objects.requireNonNull(content, "content");
-        write(target, output -> {
-            Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
-            content.accept(writer);
-            writer.flush();
-        });
+        write(
+                target,
+                output -> {
+                    Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8);
+                    content.accept(writer);
+                    writer.flush();
+                });
     }
 
     /** Writes {@code text} as UTF-8 to {@code target}, replacing it atomically. */
@@ -59,8 +64,9 @@ public final class AtomicFiles {
     }
 
     /**
-     * Moves an already written {@code staged} file over {@code target}, atomically where the file system allows it.
-     * {@code staged} should be in the target's directory, since only same-directory moves are reliably atomic.
+     * Moves an already written {@code staged} file over {@code target}, atomically where the file
+     * system allows it. {@code staged} should be in the target's directory, since only
+     * same-directory moves are reliably atomic.
      */
     public static void replace(Path staged, Path target) throws IOException {
         replace(staged, target, Files::move);
@@ -79,7 +85,11 @@ public final class AtomicFiles {
         Objects.requireNonNull(staged, "staged");
         Objects.requireNonNull(target, "target");
         try {
-            mover.move(staged, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            mover.move(
+                    staged,
+                    target,
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE);
         } catch (AtomicMoveNotSupportedException exception) {
             mover.move(staged, target, StandardCopyOption.REPLACE_EXISTING);
         }

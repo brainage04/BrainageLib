@@ -7,10 +7,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 import io.github.brainage04.brainagelib.BrainageLib;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.storage.LevelResource;
-import org.slf4j.Logger;
-
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,20 +14,24 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.level.storage.LevelResource;
+import org.slf4j.Logger;
 
 /**
- * Per-world player preferences keyed by UUID, stored in one JSON file in the world folder:
- * {@code {"schemaVersion": N, "players": {"<uuid>": <preference>, ...}}}.
+ * Per-world player preferences keyed by UUID, stored in one JSON file in the world folder: {@code
+ * {"schemaVersion": N, "players": {"<uuid>": <preference>, ...}}}.
  *
- * <p>The owning mod keeps its preference type and its rules; this class only stores them. {@link #load} is called
- * when the server starts and writes an empty document when the file is missing; {@link #close} saves and forgets
- * everything when the server stops. A document with another schema version, or one that cannot be read, is not
- * loaded and, under the default {@link JsonFile.FailedLoadPolicy#KEEP_ORIGINAL}, never overwritten: changes then
- * apply for the session only and {@link #save} reports {@link JsonFile.SaveResult#KEPT_ORIGINAL}. Entries whose key
- * is not a UUID, or whose value is null, are skipped with a warning.
+ * <p>The owning mod keeps its preference type and its rules; this class only stores them. {@link
+ * #load} is called when the server starts and writes an empty document when the file is missing;
+ * {@link #close} saves and forgets everything when the server stops. A document with another schema
+ * version, or one that cannot be read, is not loaded and, under the default {@link
+ * JsonFile.FailedLoadPolicy#KEEP_ORIGINAL}, never overwritten: changes then apply for the session
+ * only and {@link #save} reports {@link JsonFile.SaveResult#KEPT_ORIGINAL}. Entries whose key is
+ * not a UUID, or whose value is null, are skipped with a warning.
  *
- * <p>Instances are thread-safe; preferences returned by {@link #getOrCreate} are owned by the store and should only
- * be changed while holding a lock that also covers the following {@link #save}.
+ * <p>Instances are thread-safe; preferences returned by {@link #getOrCreate} are owned by the store
+ * and should only be changed while holding a lock that also covers the following {@link #save}.
  */
 public final class WorldPlayerStore<P> {
     private final String fileName;
@@ -59,11 +59,12 @@ public final class WorldPlayerStore<P> {
     }
 
     /**
-     * @param fileName       the file in the world folder, for example {@code "telekinesis-players.json"}
+     * @param fileName the file in the world folder, for example {@code "telekinesis-players.json"}
      * @param preferenceType one player's preferences, serialised with Gson
-     * @param defaults       preferences of a player without an entry
+     * @param defaults preferences of a player without an entry
      */
-    public static <P> Builder<P> builder(String fileName, Class<P> preferenceType, Supplier<P> defaults) {
+    public static <P> Builder<P> builder(
+            String fileName, Class<P> preferenceType, Supplier<P> defaults) {
         return new Builder<>(fileName, preferenceType, defaults);
     }
 
@@ -75,26 +76,33 @@ public final class WorldPlayerStore<P> {
     /** Loads {@code path}, replacing everything held in memory; a missing file is created empty. */
     public synchronized JsonFile.LoadResult<?> load(Path path) {
         preferences.clear();
-        file = JsonFile.builder(path, gson, documentType())
-                .decoder(this::decode)
-                .failedLoadPolicy(failedLoadPolicy)
-                .description(description)
-                .logger(logger)
-                .build();
+        file =
+                JsonFile.builder(path, gson, documentType())
+                        .decoder(this::decode)
+                        .failedLoadPolicy(failedLoadPolicy)
+                        .description(description)
+                        .logger(logger)
+                        .build();
         JsonFile.LoadResult<Document<P>> result = file.load();
         switch (result) {
             case JsonFile.LoadResult.Missing<Document<P>> missing -> save();
-            case JsonFile.LoadResult.Loaded<Document<P>> loaded -> loaded.value().players().forEach((key, preference) -> {
-                UUID id = parseUuid(key);
-                if (id == null) {
-                    logger.warn("Ignoring invalid player UUID in {}: {}", path, key);
-                } else if (preference != null) {
-                    normalizer.accept(preference);
-                    preferences.put(id, preference);
-                }
-            });
-            default -> {
-            }
+            case JsonFile.LoadResult.Loaded<Document<P>> loaded ->
+                    loaded.value()
+                            .players()
+                            .forEach(
+                                    (key, preference) -> {
+                                        UUID id = parseUuid(key);
+                                        if (id == null) {
+                                            logger.warn(
+                                                    "Ignoring invalid player UUID in {}: {}",
+                                                    path,
+                                                    key);
+                                        } else if (preference != null) {
+                                            normalizer.accept(preference);
+                                            preferences.put(id, preference);
+                                        }
+                                    });
+            default -> {}
         }
         return result;
     }
@@ -111,7 +119,8 @@ public final class WorldPlayerStore<P> {
     }
 
     public synchronized void put(UUID id, P preference) {
-        preferences.put(Objects.requireNonNull(id, "id"), Objects.requireNonNull(preference, "preference"));
+        preferences.put(
+                Objects.requireNonNull(id, "id"), Objects.requireNonNull(preference, "preference"));
     }
 
     /** Whether a world's file is loaded. */
@@ -119,7 +128,9 @@ public final class WorldPlayerStore<P> {
         return file != null;
     }
 
-    /** Writes every stored preference; {@link JsonFile.SaveResult#FAILED} when no world is loaded. */
+    /**
+     * Writes every stored preference; {@link JsonFile.SaveResult#FAILED} when no world is loaded.
+     */
     public synchronized JsonFile.SaveResult save() {
         if (file == null) {
             return JsonFile.SaveResult.FAILED;
@@ -142,9 +153,12 @@ public final class WorldPlayerStore<P> {
             throw new JsonParseException("Expected a JSON object");
         }
         JsonElement version = object.get("schemaVersion");
-        if (version == null || !version.isJsonPrimitive() || !version.getAsJsonPrimitive().isNumber()
+        if (version == null
+                || !version.isJsonPrimitive()
+                || !version.getAsJsonPrimitive().isNumber()
                 || version.getAsInt() != schemaVersion) {
-            throw new JsonParseException("Unsupported schemaVersion " + version + "; expected " + schemaVersion);
+            throw new JsonParseException(
+                    "Unsupported schemaVersion " + version + "; expected " + schemaVersion);
         }
         Document<P> document = gson.fromJson(object, documentType());
         if (document.players() == null) {
@@ -176,7 +190,8 @@ public final class WorldPlayerStore<P> {
         private int schemaVersion = 1;
         private Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         private Consumer<P> normalizer = preference -> {};
-        private JsonFile.FailedLoadPolicy failedLoadPolicy = JsonFile.FailedLoadPolicy.KEEP_ORIGINAL;
+        private JsonFile.FailedLoadPolicy failedLoadPolicy =
+                JsonFile.FailedLoadPolicy.KEEP_ORIGINAL;
         private String description;
         private Logger logger = BrainageLib.LOGGER;
 

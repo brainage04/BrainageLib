@@ -1,21 +1,23 @@
 package io.github.brainage04.brainagelib.gametest;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.commands.CommandSource;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * A command source that keeps every message sent to it, for running commands as a console-like source.
- * Use {@link #source} for a server source (all permissions) that reports to this output.
+ * A command source that keeps every message sent to it, for running commands as a console-like
+ * source. Use {@link #source} for a server source (all permissions) that reports to this output.
  */
 public final class CapturedCommandOutput implements CommandSource {
     private final List<Component> messages = new ArrayList<>();
 
-    /** The server's own command source, reporting success and failure messages here instead of the console. */
+    /**
+     * The server's own command source, reporting success and failure messages here instead of the
+     * console.
+     */
     public CommandSourceStack source(MinecraftServer server) {
         return server.createCommandSourceStack().withSource(this);
     }

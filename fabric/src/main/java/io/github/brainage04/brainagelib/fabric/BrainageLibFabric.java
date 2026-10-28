@@ -12,10 +12,14 @@ public final class BrainageLibFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         BrainageLib.initialize();
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> ServerModsCommand.initialize(dispatcher));
+        CommandRegistrationCallback.EVENT.register(
+                (dispatcher, registryAccess, environment) ->
+                        ServerModsCommand.initialize(dispatcher));
         ServerLifecycleEvents.SERVER_STARTED.register(FirstJoinHelpState::serverStarted);
         ServerLifecycleEvents.SERVER_STOPPING.register(FirstJoinHelpState::serverStopping);
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> FirstJoinHelpState.serverStopped());
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> FirstJoinHelpState.playerJoined(handler.player, server));
+        ServerPlayConnectionEvents.JOIN.register(
+                (handler, sender, server) ->
+                        FirstJoinHelpState.playerJoined(handler.player, server));
     }
 }

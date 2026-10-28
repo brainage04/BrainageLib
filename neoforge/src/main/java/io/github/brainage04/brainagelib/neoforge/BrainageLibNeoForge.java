@@ -22,11 +22,25 @@ public final class BrainageLibNeoForge {
         NeoForge.EVENT_BUS.addListener(this::serverStopped);
         NeoForge.EVENT_BUS.addListener(this::playerLoggedIn);
     }
-    private void registerCommands(RegisterCommandsEvent event) { ServerModsCommand.initialize(event.getDispatcher()); }
-    private void serverStarted(ServerStartedEvent event) { FirstJoinHelpState.serverStarted(event.getServer()); }
-    private void serverStopping(ServerStoppingEvent event) { FirstJoinHelpState.serverStopping(event.getServer()); }
-    private void serverStopped(ServerStoppedEvent event) { FirstJoinHelpState.serverStopped(); }
+
+    private void registerCommands(RegisterCommandsEvent event) {
+        ServerModsCommand.initialize(event.getDispatcher());
+    }
+
+    private void serverStarted(ServerStartedEvent event) {
+        FirstJoinHelpState.serverStarted(event.getServer());
+    }
+
+    private void serverStopping(ServerStoppingEvent event) {
+        FirstJoinHelpState.serverStopping(event.getServer());
+    }
+
+    private void serverStopped(ServerStoppedEvent event) {
+        FirstJoinHelpState.serverStopped();
+    }
+
     private void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) FirstJoinHelpState.playerJoined(player, player.level().getServer());
+        if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player)
+            FirstJoinHelpState.playerJoined(player, player.level().getServer());
     }
 }

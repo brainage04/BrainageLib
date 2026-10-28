@@ -3,6 +3,9 @@ package io.github.brainage04.brainagelib.gametest;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.ReferenceCountUtil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.Connection;
@@ -17,17 +20,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.world.level.GameType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
 /**
- * A real player joined to a GameTest server through {@code PlayerList.placeNewPlayer}, with a server-side packet
- * listener on an in-memory connection. Commands go through the real chat-command packet handler and every
- * clientbound packet is kept, so tests see exactly what a client would receive.
+ * A real player joined to a GameTest server through {@code PlayerList.placeNewPlayer}, with a
+ * server-side packet listener on an in-memory connection. Commands go through the real chat-command
+ * packet handler and every clientbound packet is kept, so tests see exactly what a client would
+ * receive.
  *
- * <p>Close it (try-with-resources) when the test ends: closing removes the player from the server, disconnects the
- * listener and releases the channel. This class is test support only and is never part of a mod's runtime JAR.
+ * <p>Close it (try-with-resources) when the test ends: closing removes the player from the server,
+ * disconnects the listener and releases the channel. This class is test support only and is never
+ * part of a mod's runtime JAR.
  */
 public final class GameTestPlayer implements AutoCloseable {
     private final MinecraftServer server;
@@ -37,7 +38,11 @@ public final class GameTestPlayer implements AutoCloseable {
     private final List<Component> messages = new ArrayList<>();
     private boolean closed;
 
-    private GameTestPlayer(MinecraftServer server, ServerPlayer player, Connection connection, EmbeddedChannel channel) {
+    private GameTestPlayer(
+            MinecraftServer server,
+            ServerPlayer player,
+            Connection connection,
+            EmbeddedChannel channel) {
         this.server = server;
         this.player = player;
         this.connection = connection;
@@ -54,7 +59,8 @@ public final class GameTestPlayer implements AutoCloseable {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile, false);
-        ServerPlayer player = new ServerPlayer(server, level, cookie.gameProfile(), cookie.clientInformation());
+        ServerPlayer player =
+                new ServerPlayer(server, level, cookie.gameProfile(), cookie.clientInformation());
         Connection connection = new Connection(PacketFlow.SERVERBOUND);
         EmbeddedChannel channel = new EmbeddedChannel(connection);
         try {
@@ -85,7 +91,10 @@ public final class GameTestPlayer implements AutoCloseable {
         return this;
     }
 
-    /** Sends the packet a client sends once it has loaded the world, so the player can be hurt and interact. */
+    /**
+     * Sends the packet a client sends once it has loaded the world, so the player can be hurt and
+     * interact.
+     */
     public GameTestPlayer markLoaded() {
         player.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
         return this;
@@ -146,7 +155,8 @@ public final class GameTestPlayer implements AutoCloseable {
         channel.flushOutbound();
         Object outbound;
         while ((outbound = channel.readOutbound()) != null) {
-            if (outbound instanceof ClientboundSystemChatPacket(Component content, boolean overlay) && !overlay) {
+            if (outbound instanceof ClientboundSystemChatPacket(Component content, boolean overlay)
+                    && !overlay) {
                 messages.add(content);
             }
             ReferenceCountUtil.release(outbound);

@@ -1,15 +1,20 @@
 package io.github.brainage04.brainagelib.feedback;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ModFeedbackTest {
     @Test
     void decorationCopiesTheMessageAndPreservesItsInteractiveStyle() {
-        var original = Component.literal("Open help").withStyle(style -> style.withBold(true).withInsertion("/example help"));
+        var original =
+                Component.literal("Open help")
+                        .withStyle(style -> style.withBold(true).withInsertion("/example help"));
         var decorated = ModFeedback.create(" Example ").decorate(ChatFormatting.GREEN, original);
         assertEquals("[Example] Open help", decorated.getString());
         assertEquals(0xAAAAAA, decorated.getStyle().getColor().getValue());

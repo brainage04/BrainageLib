@@ -1,25 +1,30 @@
 package io.github.brainage04.brainagelib.confirmation;
 
-import org.junit.jupiter.api.Test;
+import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.CONFIRMED;
+import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.REQUESTED;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.CONFIRMED;
-import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.REQUESTED;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 class ConfirmationWindowTest {
-    @Test void inclusiveWindowConfirmsOnItsLastTick() {
+    @Test
+    void inclusiveWindowConfirmsOnItsLastTick() {
         var window = new ConfirmationWindow<String>(600, ConfirmationWindow.Boundary.INCLUSIVE);
         assertEquals(REQUESTED, window.requestOrConfirm("alex", 100));
         assertEquals(CONFIRMED, window.requestOrConfirm("alex", 700));
         assertEquals(REQUESTED, window.requestOrConfirm("alex", 800), "A confirmation is consumed");
-        assertEquals(REQUESTED, window.requestOrConfirm("alex", 1401), "One tick late requests again");
+        assertEquals(
+                REQUESTED, window.requestOrConfirm("alex", 1401), "One tick late requests again");
         assertEquals(CONFIRMED, window.requestOrConfirm("alex", 2001));
     }
 
-    @Test void exclusiveWindowClosesOnItsLastTick() {
+    @Test
+    void exclusiveWindowClosesOnItsLastTick() {
         var window = new ConfirmationWindow<String>(200, ConfirmationWindow.Boundary.EXCLUSIVE);
         assertEquals(REQUESTED, window.requestOrConfirm("alex", 0));
         assertTrue(window.isPending("alex", 199));
@@ -28,7 +33,8 @@ class ConfirmationWindowTest {
         assertEquals(CONFIRMED, window.requestOrConfirm("alex", 399));
     }
 
-    @Test void keysAreIndependentAndCancelClearAndExpireDropRequests() {
+    @Test
+    void keysAreIndependentAndCancelClearAndExpireDropRequests() {
         var window = new ConfirmationWindow<String>(200, ConfirmationWindow.Boundary.EXCLUSIVE);
         window.requestOrConfirm("alex", 0);
         window.requestOrConfirm("sam", 50);
@@ -45,7 +51,10 @@ class ConfirmationWindowTest {
         assertEquals(REQUESTED, window.requestOrConfirm("kim", 201));
     }
 
-    @Test void rejectsAnEmptyWindow() {
-        assertThrows(IllegalArgumentException.class, () -> new ConfirmationWindow<String>(0, ConfirmationWindow.Boundary.INCLUSIVE));
+    @Test
+    void rejectsAnEmptyWindow() {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new ConfirmationWindow<String>(0, ConfirmationWindow.Boundary.INCLUSIVE));
     }
 }

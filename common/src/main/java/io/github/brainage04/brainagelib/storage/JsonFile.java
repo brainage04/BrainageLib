@@ -7,26 +7,26 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import io.github.brainage04.brainagelib.BrainageLib;
-import org.slf4j.Logger;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import org.slf4j.Logger;
 
 /**
- * One JSON document on disk with an explicit load result and an explicit rule for what a failed load means for
- * later saves.
+ * One JSON document on disk with an explicit load result and an explicit rule for what a failed
+ * load means for later saves.
  *
- * <p>With the default {@link FailedLoadPolicy#KEEP_ORIGINAL}, a file that could not be read or decoded (malformed,
- * rejected by the decoder, for example a newer schema, or unreadable) is never overwritten: {@link #save} returns
- * {@link SaveResult#KEPT_ORIGINAL} until a later {@link #load} succeeds or finds the file missing. Callers keep
- * changes in memory for the session and tell the player or console that they were not saved.
+ * <p>With the default {@link FailedLoadPolicy#KEEP_ORIGINAL}, a file that could not be read or
+ * decoded (malformed, rejected by the decoder, for example a newer schema, or unreadable) is never
+ * overwritten: {@link #save} returns {@link SaveResult#KEPT_ORIGINAL} until a later {@link #load}
+ * succeeds or finds the file missing. Callers keep changes in memory for the session and tell the
+ * player or console that they were not saved.
  *
- * <p>Saves go through {@link AtomicFiles}. Load and save problems are logged here; callers report them to players.
- * Instances are thread-safe.
+ * <p>Saves go through {@link AtomicFiles}. Load and save problems are logged here; callers report
+ * them to players. Instances are thread-safe.
  */
 public final class JsonFile<T> {
     private final Path path;
@@ -44,7 +44,8 @@ public final class JsonFile<T> {
         this.type = builder.type;
         this.decoder = builder.decoder != null ? builder.decoder : this::decodeWithGson;
         this.failedLoadPolicy = builder.failedLoadPolicy;
-        this.description = builder.description != null ? builder.description : path.getFileName().toString();
+        this.description =
+                builder.description != null ? builder.description : path.getFileName().toString();
         this.logger = builder.logger;
     }
 
@@ -61,8 +62,9 @@ public final class JsonFile<T> {
     }
 
     /**
-     * Reads and decodes the file. A file that does not exist is {@link LoadResult.Missing}; a document that is not
-     * JSON, is JSON {@code null}, or is rejected by the decoder is {@link LoadResult.Invalid}.
+     * Reads and decodes the file. A file that does not exist is {@link LoadResult.Missing}; a
+     * document that is not JSON, is JSON {@code null}, or is rejected by the decoder is {@link
+     * LoadResult.Invalid}.
      */
     public synchronized LoadResult<T> load() {
         LoadResult<T> result;
@@ -83,18 +85,26 @@ public final class JsonFile<T> {
                 result = new LoadResult.IoError<>(exception);
             } catch (JsonIOException exception) {
                 // Gson wraps read failures, for example a directory where the file should be.
-                result = new LoadResult.IoError<>(exception.getCause() instanceof IOException cause
-                        ? cause : new IOException(exception.getMessage(), exception));
+                result =
+                        new LoadResult.IoError<>(
+                                exception.getCause() instanceof IOException cause
+                                        ? cause
+                                        : new IOException(exception.getMessage(), exception));
             } catch (JsonParseException exception) {
                 result = new LoadResult.Invalid<>(exception);
             } catch (IllegalStateException | UnsupportedOperationException exception) {
                 // Thrown by Gson's JsonElement accessors when a decoder meets the wrong shape.
-                result = new LoadResult.Invalid<>(new JsonParseException(exception.getMessage(), exception));
+                result =
+                        new LoadResult.Invalid<>(
+                                new JsonParseException(exception.getMessage(), exception));
             }
         }
         lastLoad = result;
         if (result.failed()) {
-            logger.error("Failed to load {} from {}; {}", description, path,
+            logger.error(
+                    "Failed to load {} from {}; {}",
+                    description,
+                    path,
                     failedLoadPolicy == FailedLoadPolicy.KEEP_ORIGINAL
                             ? "the file will not be overwritten and changes apply for this session only"
                             : "it will be replaced by the next save",
@@ -108,16 +118,27 @@ public final class JsonFile<T> {
         return lastLoad;
     }
 
-    /** Whether {@link #save} would write the file, given the most recent load and the failed-load policy. */
+    /**
+     * Whether {@link #save} would write the file, given the most recent load and the failed-load
+     * policy.
+     */
     public synchronized boolean savesAllowed() {
-        return failedLoadPolicy == FailedLoadPolicy.ALLOW_OVERWRITE || lastLoad == null || !lastLoad.failed();
+        return failedLoadPolicy == FailedLoadPolicy.ALLOW_OVERWRITE
+                || lastLoad == null
+                || !lastLoad.failed();
     }
 
-    /** Writes {@code value} with this file's Gson, unless the failed-load policy keeps the original file. */
+    /**
+     * Writes {@code value} with this file's Gson, unless the failed-load policy keeps the original
+     * file.
+     */
     public synchronized SaveResult save(T value) {
         Objects.requireNonNull(value, "value");
         if (!savesAllowed()) {
-            logger.warn("Not saving {} to {} because it failed to load; the file is kept unchanged", description, path);
+            logger.warn(
+                    "Not saving {} to {} because it failed to load; the file is kept unchanged",
+                    description,
+                    path);
             return SaveResult.KEPT_ORIGINAL;
         }
         try {
@@ -135,7 +156,10 @@ public final class JsonFile<T> {
 
     /** What a failed load means for later saves. */
     public enum FailedLoadPolicy {
-        /** Never overwrite a file that failed to load; saves return {@link SaveResult#KEPT_ORIGINAL}. The default. */
+        /**
+         * Never overwrite a file that failed to load; saves return {@link
+         * SaveResult#KEPT_ORIGINAL}. The default.
+         */
         KEEP_ORIGINAL,
         /** Let the next save replace a file that failed to load. */
         ALLOW_OVERWRITE
@@ -143,7 +167,10 @@ public final class JsonFile<T> {
 
     public enum SaveResult {
         SAVED,
-        /** Not written because the file failed to load and the policy keeps it; the change applies in memory only. */
+        /**
+         * Not written because the file failed to load and the policy keeps it; the change applies
+         * in memory only.
+         */
         KEPT_ORIGINAL,
         /** Writing failed; the previous file is unchanged. */
         FAILED;
@@ -153,7 +180,10 @@ public final class JsonFile<T> {
         }
     }
 
-    /** Turns the parsed document into a value; throw {@link JsonParseException} to reject it as invalid. */
+    /**
+     * Turns the parsed document into a value; throw {@link JsonParseException} to reject it as
+     * invalid.
+     */
     @FunctionalInterface
     public interface Decoder<T> {
         T decode(JsonElement document) throws JsonParseException;
@@ -178,7 +208,10 @@ public final class JsonFile<T> {
 
         record Loaded<T>(T value) implements LoadResult<T> {}
 
-        /** Not JSON, JSON {@code null}, or rejected by the decoder (for example an unsupported schema version). */
+        /**
+         * Not JSON, JSON {@code null}, or rejected by the decoder (for example an unsupported
+         * schema version).
+         */
         record Invalid<T>(JsonParseException exception) implements LoadResult<T> {}
 
         record IoError<T>(IOException exception) implements LoadResult<T> {}
@@ -210,7 +243,10 @@ public final class JsonFile<T> {
             return this;
         }
 
-        /** Names the file in log messages, for example "Telekinesis player settings". Defaults to the file name. */
+        /**
+         * Names the file in log messages, for example "Telekinesis player settings". Defaults to
+         * the file name.
+         */
         public Builder<T> description(String description) {
             this.description = Objects.requireNonNull(description, "description");
             return this;

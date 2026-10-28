@@ -9,11 +9,12 @@ import java.util.function.Consumer;
 /**
  * "Run it again to confirm" for one action, measured in server ticks.
  *
- * <p>The first {@link #requestOrConfirm} for a key records a request; a second one while the request is still open
- * confirms and consumes it. A request made at tick {@code r} is open at tick {@code t} when {@code t - r} is at most
- * the window ({@link Boundary#INCLUSIVE}) or below it ({@link Boundary#EXCLUSIVE}); a run after it closed records a
- * new request. Use one instance per action and server, and {@link #clear} it when the server stops. Callers send
- * every message themselves. Instances are thread-safe.
+ * <p>The first {@link #requestOrConfirm} for a key records a request; a second one while the
+ * request is still open confirms and consumes it. A request made at tick {@code r} is open at tick
+ * {@code t} when {@code t - r} is at most the window ({@link Boundary#INCLUSIVE}) or below it
+ * ({@link Boundary#EXCLUSIVE}); a run after it closed records a new request. Use one instance per
+ * action and server, and {@link #clear} it when the server stops. Callers send every message
+ * themselves. Instances are thread-safe.
  */
 public final class ConfirmationWindow<K> {
     private final long windowTicks;
@@ -32,7 +33,10 @@ public final class ConfirmationWindow<K> {
         return windowTicks;
     }
 
-    /** Confirms and consumes an open request for {@code key}, or records a new request at {@code nowTick}. */
+    /**
+     * Confirms and consumes an open request for {@code key}, or records a new request at {@code
+     * nowTick}.
+     */
     public synchronized Outcome requestOrConfirm(K key, long nowTick) {
         Objects.requireNonNull(key, "key");
         Long requested = requestedAt.remove(key);
@@ -59,7 +63,9 @@ public final class ConfirmationWindow<K> {
         requestedAt.clear();
     }
 
-    /** Drops every request that is closed at {@code nowTick}, passing each key to {@code onExpired}. */
+    /**
+     * Drops every request that is closed at {@code nowTick}, passing each key to {@code onExpired}.
+     */
     public synchronized void expire(long nowTick, Consumer<? super K> onExpired) {
         Objects.requireNonNull(onExpired, "onExpired");
         Iterator<Map.Entry<K, Long>> iterator = requestedAt.entrySet().iterator();
