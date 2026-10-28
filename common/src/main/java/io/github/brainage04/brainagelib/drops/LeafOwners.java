@@ -22,8 +22,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Which player felled the tree each leaf belonged to, for the leaves that decay after it. A
- * decaying leaf drops through the game's entity-less loot path, with no breaker to name; a mod that
- * fells a tree calls {@link #felled} with the logs it broke, and every leaf those logs held up then
+ * decaying leaf drops through the game's entity-less loot path, with no breaker to name. Every log
+ * a player breaks themselves is recorded here by BrainageLib, and a mod that breaks more logs for a
+ * player (a whole tree at once) calls {@link #felled} with those; every leaf the logs held up then
  * drops inside a capture scope for that player ({@link DropCapture}) when it decays, so each pays
  * exactly the player who cut its tree and never another feller whose log happens to stand nearer.
  *
@@ -74,6 +75,14 @@ public final class LeafOwners {
         if (leaves.size() > LIMIT) {
             prune(leaves, level.getGameTime());
         }
+    }
+
+    /**
+     * Forgets every felling. Called when a server stops: a record's window is in its world's game
+     * time, so it must not reach a world the same JVM loads next.
+     */
+    public static void clear() {
+        FELLINGS.clear();
     }
 
     /**

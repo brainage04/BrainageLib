@@ -9,5 +9,6 @@
 	"license": "MIT", "icon": "assets/brainagelib/icon.png", "environment": "*",
 	"entrypoints": {"main": ["io.github.brainage04.brainagelib.fabric.BrainageLibFabric"]},
 	"mixins": ["brainagelib.mixins.json"],
-	"depends": {"fabricloader": ">=${loader_version}", "minecraft": "~${minecraft_version}", "java": ">=${java_version}", "fabric-api": "*"}
+	"depends": {"fabricloader": ">=${loader_version}", "minecraft": "~${minecraft_version}", "java": ">=${java_version}", "fabric-api": "*"},
+	"breaks": {"telekinesis": "<1.2.0"}
 }

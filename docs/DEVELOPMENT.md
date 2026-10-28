@@ -111,7 +111,7 @@ Load problems, refused saves and write failures are logged by BrainageLib.
 - a mob's death loot and experience, for the player vanilla credits with the kill (`getLastHurtByPlayer` within its 100-tick memory: melee, owned projectiles and potions, a tamed wolf); a killed player's own drops always stay in the world;
 - the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
 - the ender dragon's death-animation experience, for its killer;
-- a decaying leaf of a tree a player felled, when the mod that felled it called `LeafOwners.felled(player, level, logs)`; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute.
+- a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.
 
 Inside a scope, an item entity or experience about to spawn goes to the player instead. What fits goes into the inventory (with the `picked_up` statistic), the rest is moved to the player's feet. Experience repairs Mending items first. A dead player, or one in another dimension, gets nothing.
 

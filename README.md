@@ -29,7 +29,9 @@ No configuration yet.
 
 ## Compatibility
 
-Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your server's loader.
+Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your server's loader. A client that installs a mod requiring BrainageLib, such as Skyport Minigames, installs it too, so its Modrinth listing marks it required on the client as well.
+
+Telekinesis before 1.2.0 carries its own drop capture on the same game hooks; BrainageLib 1.3.0 refuses to load beside it (Fabric `breaks`, NeoForge `incompatible`), so update Telekinesis together with BrainageLib.
 
 ## Documentation
 

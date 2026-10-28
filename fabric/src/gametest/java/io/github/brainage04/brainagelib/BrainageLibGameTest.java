@@ -59,6 +59,11 @@ public final class BrainageLibGameTest {
         DropCaptureGameTests.felledLeafDecayPaysTheFeller(context);
     }
 
+    @GameTest
+    public void playerLogBreakRecordsItsLeaves(GameTestHelper context) {
+        DropCaptureGameTests.playerLogBreakRecordsItsLeaves(context);
+    }
+
     @GameTest(maxTicks = 100)
     public void respawnAnchorClickCreditsTheClicker(GameTestHelper context) {
         DropCaptureGameTests.respawnAnchorClickCreditsTheClicker(context);

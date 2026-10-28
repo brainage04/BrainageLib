@@ -2,6 +2,6 @@
   "categories": [
     "library"
   ],
-  "client_side": "unsupported",
+  "client_side": "required",
   "server_side": "required"
 }

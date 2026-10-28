@@ -217,6 +217,40 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
+    /// A log the player breaks themselves records the leaves it held up for them with no mod
+    /// calling {@link LeafOwners#felled}: the leaf decays later and pays that player.
+    public static void playerLogBreakRecordsItsLeaves(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcLogger", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            BlockPos log = helper.absolutePos(BLOCK_POS);
+            BlockPos leafPos = log.above();
+            try {
+                BlockState leaf = Blocks.OAK_LEAVES.defaultBlockState();
+                level.setBlockAndUpdate(log, Blocks.OAK_LOG.defaultBlockState());
+                level.setBlockAndUpdate(leafPos, leaf);
+
+                check(player.gameMode.destroyBlock(log), "The log must break");
+                checkCount(player, Items.OAK_LOG, 1, "the log the player broke");
+                level.setBlockAndUpdate(leafPos, Blocks.AIR.defaultBlockState());
+                for (int roll = 0; roll < LEAF_ROLLS; roll++) {
+                    Block.dropResources(leaf, level, leafPos);
+                }
+
+                check(leafDrops(player) > 0, "The broken log's decaying leaf must pay the player");
+                check(
+                        itemsNear(level, leafPos, null) == 0,
+                        "No drop of the broken log's leaf may stay on the ground");
+            } finally {
+                DropPolicies.unregister(policy);
+                discardItems(level, log);
+            }
+        }
+        helper.succeed();
+    }
+
     /// A charged respawn anchor used where anchors do not work (the End) explodes naming nobody;
     /// its block drops go to the player who used it, and the blast still reaches that player as it
     /// always did.

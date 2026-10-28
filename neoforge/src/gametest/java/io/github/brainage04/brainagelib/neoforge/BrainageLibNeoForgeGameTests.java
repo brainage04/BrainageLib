@@ -73,6 +73,11 @@ public final class BrainageLibNeoForgeGameTests {
         event.register(
                 BuiltInRegistries.TEST_FUNCTION.key(),
                 Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "player_log_break_records_its_leaves"),
+                () -> DropCaptureGameTests::playerLogBreakRecordsItsLeaves);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
                         BrainageLib.MOD_ID, "respawn_anchor_click_credits_the_clicker"),
                 () -> DropCaptureGameTests::respawnAnchorClickCreditsTheClicker);
         event.register(

@@ -26,5 +26,15 @@ versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"
 
+# Telekinesis before 1.2.0 ships its own capture engine on the same hooks, which would bypass the
+# policies (a minigame's match rules) this one asks.
+[[dependencies.brainagelib]]
+modId="telekinesis"
+type="incompatible"
+versionRange="(,1.2.0)"
+reason="Telekinesis before 1.2.0 has its own drop capture; update it to 1.2.0 or later."
+ordering="NONE"
+side="BOTH"
+
 [[mixins]]
 config="brainagelib.mixins.json"
