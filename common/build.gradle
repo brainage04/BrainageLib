@@ -63,13 +63,11 @@ tasks.named('assemble') {
 	dependsOn testSupportJar
 }
 
+// Only the GameTest fixtures are published from here. The `brainagelib` artifact is the Fabric jar, published by
+// :fabric (and `brainagelib-neoforge` by :neoforge); a second `brainagelib` publication here raced the Fabric one
+// for the same files under parallel builds.
 publishing {
 	publications {
-		create('mavenJava', MavenPublication) {
-			artifactId = rootProject.archives_base_name
-			from components.java
-			artifact tasks.named('javadocJar')
-		}
 		create('gameTestSupport', MavenPublication) {
 			artifactId = "${rootProject.archives_base_name}-gametest"
 			artifact testSupportJar
