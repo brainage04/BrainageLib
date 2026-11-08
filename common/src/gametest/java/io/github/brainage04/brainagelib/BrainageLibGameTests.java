@@ -22,7 +22,6 @@ import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.storage.LevelResource;
 
-/** The same behavioral bodies run against both loaders' real command dispatchers. */
 public final class BrainageLibGameTests {
     private BrainageLibGameTests() {}
 
@@ -106,10 +105,6 @@ public final class BrainageLibGameTests {
         context.succeed();
     }
 
-    /**
-     * The fixture joins a real player, delivers packets, runs commands and leaves nothing behind
-     * when closed.
-     */
     public static void gameTestPlayerJoinsRunsCommandsAndCleansUp(GameTestHelper context) {
         var server = context.getLevel().getServer();
         var entry =
@@ -172,7 +167,6 @@ public final class BrainageLibGameTests {
             Files.deleteIfExists(path);
             FirstJoinHelpState.serverStopped();
             FirstJoinHelpState.serverStarted(server);
-            // Joining fires the loader's join event, which sends the first notice.
             try (var fixture = GameTestPlayer.join(context, "JoinTest")) {
                 var player = fixture.player();
                 FirstJoinHelpState.playerJoined(player, server);
@@ -209,7 +203,6 @@ public final class BrainageLibGameTests {
         context.succeed();
     }
 
-    /** A file written by BrainageLib 1.0.x keeps loading: its players are not notified again. */
     public static void firstJoinStateFromPreviousVersionLoads(GameTestHelper context) {
         var server = context.getLevel().getServer();
         var path =
@@ -258,10 +251,6 @@ public final class BrainageLibGameTests {
         context.succeed();
     }
 
-    /**
-     * A file that failed to load (malformed or a newer schema) must survive a later join and
-     * shutdown byte for byte.
-     */
     public static void unreadableFirstJoinStateIsNotOverwritten(GameTestHelper context) {
         var server = context.getLevel().getServer();
         var path =

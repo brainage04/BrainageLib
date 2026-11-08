@@ -109,7 +109,6 @@ public final class AtomicFiles {
         void accept(T value) throws IOException;
     }
 
-    /** {@link Files#move}, replaceable in tests to simulate file systems without atomic moves. */
     @FunctionalInterface
     interface Mover {
         void move(Path source, Path target, StandardCopyOption... options) throws IOException;

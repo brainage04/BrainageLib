@@ -34,10 +34,6 @@ public final class DropCapture {
     private static final ThreadLocal<ArrayList<@Nullable ServerPlayer>> RECIPIENTS =
             new ThreadLocal<>();
 
-    /**
-     * The player whose click is causing an explosion that names nobody: a bed or respawn anchor
-     * they used.
-     */
     private static final ThreadLocal<ServerPlayer> CLICK = new ThreadLocal<>();
 
     private DropCapture() {}
@@ -173,8 +169,7 @@ public final class DropCapture {
         }
 
         // A dead player still resolves as a killer or TNT owner until they respawn, and a corpse's
-        // inventory is
-        // discarded at respawn: their drops stay in the world instead.
+        // inventory is discarded at respawn: their drops stay in the world instead.
         ServerPlayer player = recipients.getLast();
         if (player == null
                 || !player.isAlive()

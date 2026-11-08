@@ -37,9 +37,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/// The shared drop capture engine on its own, with test policies standing in for the mods that
-/// install real ones. Each policy governs only the players of its test, so tests running side by
-/// side never decide for each other.
+/// Each policy governs only the players of its test, so tests running side by side never decide
+/// for each other.
 public final class DropCaptureGameTests {
     private static final BlockPos FIRST_POS = new BlockPos(1, 1, 1);
     private static final BlockPos SECOND_POS = new BlockPos(5, 1, 1);
@@ -52,8 +51,6 @@ public final class DropCaptureGameTests {
 
     private DropCaptureGameTests() {}
 
-    /// A minigame's policy outranks a general mod's for the players it governs, and only for them:
-    /// the general mod still decides for everyone else.
     public static void highestGoverningPolicyDecides(GameTestHelper helper) {
         try (GameTestPlayer inMatch = player(helper, "DcInMatch", FIRST_POS);
                 GameTestPlayer outside = player(helper, "DcOutside", SECOND_POS)) {
@@ -96,8 +93,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A player no policy governs keeps every drop in the world: installing the library alone
-    /// changes nothing.
     public static void ungovernedPlayerKeepsDropsInWorld(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcNobody", FIRST_POS)) {
             BlockPos block = helper.absolutePos(BLOCK_POS);
@@ -113,8 +108,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A stack the governing policy refuses stays where the game spawned it, not at the player's
-    /// feet, while the stacks it accepts still go to the player.
     public static void refusedStackStaysWhereItSpawned(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcRefused", FIRST_POS)) {
             ServerPlayer player = fixture.player();
@@ -148,8 +141,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A mod that breaks a block for a player without `ServerPlayerGameMode.destroyBlock`, through
-    /// `Level.destroyBlock` naming the player, still has the drops delivered.
     public static void blockBrokenForAPlayerElsewhereIsCaptured(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcElsewhere", FIRST_POS)) {
             ServerPlayer player = fixture.player();
@@ -172,8 +163,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A leaf of a felled tree decays through the game's entity-less loot path and still pays the
-    /// player who felled it; a leaf no felling recorded drops in the world.
     public static void felledLeafDecayPaysTheFeller(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcFeller", FIRST_POS)) {
             ServerPlayer player = fixture.player();
@@ -217,8 +206,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A log the player breaks themselves records the leaves it held up for them with no mod
-    /// calling {@link LeafOwners#felled}: the leaf decays later and pays that player.
     public static void playerLogBreakRecordsItsLeaves(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcLogger", FIRST_POS)) {
             ServerPlayer player = fixture.player();
@@ -251,9 +238,6 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// A charged respawn anchor used where anchors do not work (the End) explodes naming nobody;
-    /// its block drops go to the player who used it, and the blast still reaches that player as it
-    /// always did.
     public static void respawnAnchorClickCreditsTheClicker(GameTestHelper helper) {
         clickExplodes(
                 helper,
@@ -268,8 +252,6 @@ public final class DropCaptureGameTests {
                                 Block.UPDATE_CLIENTS));
     }
 
-    /// A bed used where beds explode (the End) explodes naming nobody; its block drops go to the
-    /// player who used it, and the blast still reaches that player as it always did.
     public static void bedClickCreditsTheClicker(GameTestHelper helper) {
         clickExplodes(
                 helper,
@@ -369,8 +351,7 @@ public final class DropCaptureGameTests {
                                         "No emerald may stay where the chest was");
                                 // A blast that named the clicker as its source would leave them out
                                 // of its entity step; the game's own blast still hits them, so
-                                // their
-                                // client is sent its knockback, as it always was.
+                                // their client is sent its knockback, as it always was.
                                 check(blastHit(fixture), "The blast must still reach the clicker");
                             } finally {
                                 cleanup.run();
@@ -389,8 +370,6 @@ public final class DropCaptureGameTests {
         return fixture;
     }
 
-    /// Enough resistance to live through a five-power blast a few blocks away, so the drops are
-    /// still theirs.
     private static void toughen(ServerPlayer player) {
         player.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 200, 3));
     }
@@ -405,7 +384,6 @@ public final class DropCaptureGameTests {
                 new BlockHitResult(Vec3.atCenterOf(pos), Direction.UP, pos, false));
     }
 
-    /// Whether the player's client was sent an explosion that hit them (one with their knockback).
     private static boolean blastHit(GameTestPlayer fixture) {
         EmbeddedChannel channel = fixture.channel();
         channel.runPendingTasks();
@@ -426,8 +404,6 @@ public final class DropCaptureGameTests {
         ((ChestBlockEntity) level.getBlockEntity(pos)).setItem(0, new ItemStack(Items.EMERALD, 64));
     }
 
-    /// An air room with an obsidian floor and walls around `foot`, so the blast breaks nothing but
-    /// what the test placed.
     private static void clearRoom(ServerLevel level, BlockPos foot) {
         for (BlockPos pos : BlockPos.betweenClosed(foot.offset(-6, -1, -6), foot.offset(6, 6, 6))) {
             boolean shell =
@@ -453,7 +429,6 @@ public final class DropCaptureGameTests {
                 + player.getInventory().countItem(Items.APPLE);
     }
 
-    /// Items of `item` (any item for `null`) lying within three blocks of `pos`.
     private static int itemsNear(ServerLevel level, BlockPos pos, Item item) {
         return level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(3.0D)).stream()
                 .filter(entity -> item == null || entity.getItem().is(item))

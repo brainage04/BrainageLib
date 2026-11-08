@@ -39,10 +39,8 @@ public final class LeafOwners {
     /** A leaf this many leaf steps from a felled log is the most one log can hold up. */
     private static final int REACH = LeavesBlock.DECAY_DISTANCE - 1;
 
-    /** How long after a felling the leaves it left behind still count as the feller's. */
     private static final int WINDOW = 1_200;
 
-    /** Leaves remembered per dimension at most; another felling first forgets the expired ones. */
     private static final int LIMIT = 65_536;
 
     private record Fall(UUID feller, long expires) {}
@@ -105,10 +103,6 @@ public final class LeafOwners {
         return level.getServer().getPlayerList().getPlayer(fall.feller());
     }
 
-    /**
-     * The leaves the felled {@code logs} held up, as positions: face-adjacent leaves within {@link
-     * #REACH} steps of one of them, from loaded chunks only.
-     */
     private static LongList leavesOf(ServerLevel level, List<BlockPos> logs) {
         LongOpenHashSet seen = new LongOpenHashSet();
         LongArrayList found = new LongArrayList();
@@ -144,7 +138,6 @@ public final class LeafOwners {
         return found;
     }
 
-    /** Whether a loaded leaf stands at {@code pos}. */
     private static boolean leaf(ServerLevel level, BlockPos pos) {
         if (level.isOutsideBuildHeight(pos) || !level.isLoaded(pos)) {
             return false;
@@ -153,7 +146,6 @@ public final class LeafOwners {
         return state.getBlock() instanceof LeavesBlock;
     }
 
-    /** Forgets every leaf record that has left the window. */
     private static void prune(Long2ObjectOpenHashMap<Fall> leaves, long now) {
         LongIterator keys = leaves.keySet().iterator();
         while (keys.hasNext()) {

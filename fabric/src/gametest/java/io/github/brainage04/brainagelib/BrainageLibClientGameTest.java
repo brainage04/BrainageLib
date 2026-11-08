@@ -30,7 +30,6 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                     "/clientoperator help",
                     "/clientoperator config");
 
-    /// Ticks each recorded step stays on screen before the next one starts.
     private static final int STEP_VISIBLE_TICKS = 50;
 
     @Override
@@ -141,7 +140,6 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
         }
     }
 
-    /// Captions the recording and leaves the chat on screen long enough to read.
     private static void showStep(
             ClientGameTestContext context, String id, String title, String description) {
         ClientGameTestRecorder.showStep(context, id, title, description);
