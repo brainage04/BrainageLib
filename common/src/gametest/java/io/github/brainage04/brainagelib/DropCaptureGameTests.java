@@ -45,8 +45,9 @@ public final class DropCaptureGameTests {
     private static final BlockPos BLOCK_POS = new BlockPos(3, 1, 3);
     private static final BlockPos FAR_POS = new BlockPos(3, 1, 10);
 
-    /// Rolls of a decaying oak leaf's loot table; with no drop at all in about one leaf of
-    /// thirteen, every count that has to be above zero is in practice.
+    /// Rolls of a decaying oak leaf's loot table. It pays out on only about 7% of leaves (a sapling
+    /// 5%, sticks 2%, an apple 0.5%; `data/minecraft/loot_table/blocks/oak_leaves.json`), so 300
+    /// rolls all empty has probability about 1e-10.
     private static final int LEAF_ROLLS = 300;
 
     private DropCaptureGameTests() {}
@@ -273,9 +274,11 @@ public final class DropCaptureGameTests {
     }
 
     /// Builds a closed room in a force-loaded chunk of the End, far from its islands, places the
-    /// block that explodes at its centre and an emerald chest beside it, and once the room ticks
-    /// entities has a player standing three blocks away click the block. Only an entity-ticking
-    /// chunk's entities are in an explosion's reach, as on a real server around a player.
+    /// block that explodes at its centre and an emerald chest beside it, and once the room has
+    /// loaded, has a player standing three blocks away click the block. Entity-ticking status is
+    /// how a forced chunk shows it has loaded (ServerLevel.java:1929); an explosion reaches the
+    /// entities of every loaded chunk, ticking or not (ServerExplosion.java:182,
+    /// Visibility.java:22-30).
     private static void clickExplodes(
             GameTestHelper helper,
             String name,
