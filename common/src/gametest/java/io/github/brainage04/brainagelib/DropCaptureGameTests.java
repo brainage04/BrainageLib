@@ -275,10 +275,10 @@ public final class DropCaptureGameTests {
 
     /// Builds a closed room in a force-loaded chunk of the End, far from its islands, places the
     /// block that explodes at its centre and an emerald chest beside it, and once the room has
-    /// loaded, has a player standing three blocks away click the block. Entity-ticking status is
-    /// how a forced chunk shows it has loaded (ServerLevel.java:1929); an explosion reaches the
-    /// entities of every loaded chunk, ticking or not (ServerExplosion.java:182,
-    /// Visibility.java:22-30).
+    /// loaded, has a player standing three blocks away click the block. A forced chunk loads to
+    /// entity-ticking status (ChunkMap.java:128), the status the wait checks
+    /// (ServerLevel.java:1929); an explosion reaches the entities of every loaded chunk, ticking or
+    /// not (ServerExplosion.java:182, Visibility.java:22-30).
     private static void clickExplodes(
             GameTestHelper helper,
             String name,
