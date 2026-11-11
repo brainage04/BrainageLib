@@ -1,8 +1,8 @@
 # BrainageLib icon
 
-## What this is
+## The icon file
 
-`icon.png` — the BrainageLib mod icon, 1024 x 1024 PNG, SHA-256
+`icon.png` is the BrainageLib mod icon: 1024 x 1024 PNG, SHA-256
 `c7c3092727db19dadb2a53aa8fc05efeccba3a584f0432ab8959655986ca6b78`.
 
 Copied byte-identically from `.local-icon-variants/provenance/from-round3/blender-n/brainage-lib-01-matched.png`
@@ -20,9 +20,9 @@ Blender render, not a screenshot and not an output of the NMSR skin-render servi
   head scene, SHA-256 `b948b5a03da4269ebed8e82246892e185ddf41b06f3421cf5d571b1f171099d1`.
   Exactly three objects were removed: the green "plus" symbol and its two bar meshes (the exported
   plus-depth block is 0.06). Every retained object, vertex, polygon, UV, world transform, parent,
-  material, skin texel, camera, light, world, compositor and view transform is unchanged —
+  material, skin texel, camera, light, world, compositor and view transform is unchanged;
   retained-geometry digests are identical before and after (`geometry_diff` in the metadata).
-* Camera: NMSR-equivalent yaw +45 deg, elevation 35.264389682754654 deg (atan(1/sqrt(2))), roll 0 —
+* Camera: NMSR-equivalent yaw +45 deg, elevation 35.264389682754654 deg (atan(1/sqrt(2))), roll 0,
   the same framing the existing skin-render service uses (unmodified NMSR build
   `bf87e8275005601c12768a9d74c016d0337d58b0`, documented for other renders in
   `provenance/from-round3/pixel/service-provenance.json`). Random access is by camera only; the image is a Cycles
@@ -36,17 +36,17 @@ Blender render, not a screenshot and not an output of the NMSR skin-render servi
 
 `provenance/` holds the author recipe and its verification:
 
-* `brainage-lib-01-matched.py` — entry point; `author.py` — the shared author that opens the source
+* `brainage-lib-01-matched.py`: entry point; `author.py`: the shared author that opens the source
   scene, removes the plus, renders, packs and writes the metadata.
 * `brainage-lib-01-matched.blend` (packed, embeds `author.py` and the entry point),
   `brainage-lib-01-matched-metadata.json` (geometry diff, packed-texture hashes, camera, render settings).
-* `sources/npc-addons-approved.blend` — the immutable input scene.
-* `render_all.py` — the recorded sequential launcher; `verify_saved.py` — reopens the saved scene and
-  re-checks packed assets and geometry; `verify_pngs.py` — decodes and checks the PNG.
+* `sources/npc-addons-approved.blend`: the immutable input scene.
+* `render_all.py`: the recorded sequential launcher; `verify_saved.py`: reopens the saved scene and
+  re-checks packed assets and geometry; `verify_pngs.py`: decodes and checks the PNG.
 * `manifest.json`, `png-verification.json`, `saved-scene-verification.json`, `render-summary.json`,
-  `visual-review.json`, `script-hashes.json`, `cleanup-report.json` — curated to this mod's candidate
+  `visual-review.json`, `script-hashes.json`, `cleanup-report.json`: curated to this mod's candidate
   (see `CURATION.json` for the exact entries kept and dropped).
-* `CURATION.json` — what was copied, what was filtered out of the aggregate JSONs, and what was left in
+* `CURATION.json`: what was copied, what was filtered out of the aggregate JSONs, and what was left in
   round-3.
 
 ## How to regenerate
