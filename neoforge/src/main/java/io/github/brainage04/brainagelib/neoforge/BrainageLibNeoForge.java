@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.command.ServerModsCommand;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
+
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
@@ -16,7 +17,6 @@ import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 @Mod(BrainageLib.MOD_ID)
 public final class BrainageLibNeoForge {
     public BrainageLibNeoForge(IEventBus modEventBus) {
-        BrainageLib.initialize();
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
         NeoForge.EVENT_BUS.addListener(this::serverStarted);
         NeoForge.EVENT_BUS.addListener(this::serverStopping);

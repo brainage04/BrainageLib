@@ -3,87 +3,75 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
+import java.util.List;
+import java.util.function.Consumer;
+
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
 public final class BrainageLibNeoForgeGameTests {
+    private static final List<TestFunction> TEST_FUNCTIONS =
+            List.of(
+                    new TestFunction(
+                            "help_commands_execute_and_restrict_configuration",
+                            BrainageLibGameTests::helpCommandsExecuteAndRestrictConfiguration),
+                    new TestFunction(
+                            "feedback_delivers_formatted_messages_and_results",
+                            BrainageLibGameTests::feedbackDeliversFormattedMessagesAndResults),
+                    new TestFunction(
+                            "first_join_acknowledgement_survives_reload",
+                            BrainageLibGameTests::firstJoinAcknowledgementSurvivesReload),
+                    new TestFunction(
+                            "unreadable_first_join_state_is_not_overwritten",
+                            BrainageLibGameTests::unreadableFirstJoinStateIsNotOverwritten),
+                    new TestFunction(
+                            "first_join_state_from_previous_version_loads",
+                            BrainageLibGameTests::firstJoinStateFromPreviousVersionLoads),
+                    new TestFunction(
+                            "game_test_player_joins_runs_commands_and_cleans_up",
+                            BrainageLibGameTests::gameTestPlayerJoinsRunsCommandsAndCleansUp),
+                    new TestFunction(
+                            "highest_governing_drop_policy_decides",
+                            DropCaptureGameTests::highestGoverningPolicyDecides),
+                    new TestFunction(
+                            "ungoverned_player_keeps_drops_in_world",
+                            DropCaptureGameTests::ungovernedPlayerKeepsDropsInWorld),
+                    new TestFunction(
+                            "refused_drop_stays_where_it_spawned",
+                            DropCaptureGameTests::refusedStackStaysWhereItSpawned),
+                    new TestFunction(
+                            "block_broken_for_a_player_elsewhere_is_captured",
+                            DropCaptureGameTests::blockBrokenForAPlayerElsewhereIsCaptured),
+                    new TestFunction(
+                            "felled_leaf_decay_pays_the_feller",
+                            DropCaptureGameTests::felledLeafDecayPaysTheFeller),
+                    new TestFunction(
+                            "player_log_break_records_its_leaves",
+                            DropCaptureGameTests::playerLogBreakRecordsItsLeaves),
+                    new TestFunction(
+                            "respawn_anchor_click_credits_the_clicker",
+                            DropCaptureGameTests::respawnAnchorClickCreditsTheClicker),
+                    new TestFunction(
+                            "bed_click_credits_the_clicker",
+                            DropCaptureGameTests::bedClickCreditsTheClicker));
+
     private BrainageLibNeoForgeGameTests() {}
 
     @SubscribeEvent
     public static void registerTestFunctions(RegisterEvent event) {
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "help_commands_execute_and_restrict_configuration"),
-                () -> BrainageLibGameTests::helpCommandsExecuteAndRestrictConfiguration);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "feedback_delivers_formatted_messages_and_results"),
-                () -> BrainageLibGameTests::feedbackDeliversFormattedMessagesAndResults);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "first_join_acknowledgement_survives_reload"),
-                () -> BrainageLibGameTests::firstJoinAcknowledgementSurvivesReload);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "unreadable_first_join_state_is_not_overwritten"),
-                () -> BrainageLibGameTests::unreadableFirstJoinStateIsNotOverwritten);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "first_join_state_from_previous_version_loads"),
-                () -> BrainageLibGameTests::firstJoinStateFromPreviousVersionLoads);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "game_test_player_joins_runs_commands_and_cleans_up"),
-                () -> BrainageLibGameTests::gameTestPlayerJoinsRunsCommandsAndCleansUp);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "highest_governing_drop_policy_decides"),
-                () -> DropCaptureGameTests::highestGoverningPolicyDecides);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "ungoverned_player_keeps_drops_in_world"),
-                () -> DropCaptureGameTests::ungovernedPlayerKeepsDropsInWorld);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "refused_drop_stays_where_it_spawned"),
-                () -> DropCaptureGameTests::refusedStackStaysWhereItSpawned);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "block_broken_for_a_player_elsewhere_is_captured"),
-                () -> DropCaptureGameTests::blockBrokenForAPlayerElsewhereIsCaptured);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "felled_leaf_decay_pays_the_feller"),
-                () -> DropCaptureGameTests::felledLeafDecayPaysTheFeller);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "player_log_break_records_its_leaves"),
-                () -> DropCaptureGameTests::playerLogBreakRecordsItsLeaves);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "respawn_anchor_click_credits_the_clicker"),
-                () -> DropCaptureGameTests::respawnAnchorClickCreditsTheClicker);
-        event.register(
-                BuiltInRegistries.TEST_FUNCTION.key(),
-                Identifier.fromNamespaceAndPath(
-                        BrainageLib.MOD_ID, "bed_click_credits_the_clicker"),
-                () -> DropCaptureGameTests::bedClickCreditsTheClicker);
+        for (TestFunction testFunction : TEST_FUNCTIONS) {
+            event.register(
+                    BuiltInRegistries.TEST_FUNCTION.key(),
+                    Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, testFunction.id()),
+                    testFunction::function);
+        }
     }
+
+    private record TestFunction(String id, Consumer<GameTestHelper> function) {}
 }

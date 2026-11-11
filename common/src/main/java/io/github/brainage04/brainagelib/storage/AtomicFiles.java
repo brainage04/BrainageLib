@@ -25,8 +25,7 @@ public final class AtomicFiles {
     private AtomicFiles() {}
 
     /** Writes content produced by {@code content} to {@code target}, replacing it atomically. */
-    public static void write(Path target, IOConsumer<? super OutputStream> content)
-            throws IOException {
+    static void write(Path target, IOConsumer<? super OutputStream> content) throws IOException {
         Objects.requireNonNull(content, "content");
         Path staged = stagingPath(target);
         Path directory = staged.getParent();
@@ -45,8 +44,7 @@ public final class AtomicFiles {
     }
 
     /** Writes UTF-8 text produced by {@code content} to {@code target}, replacing it atomically. */
-    public static void writeText(Path target, IOConsumer<? super Writer> content)
-            throws IOException {
+    static void writeText(Path target, IOConsumer<? super Writer> content) throws IOException {
         Objects.requireNonNull(content, "content");
         write(
                 target,
@@ -68,12 +66,12 @@ public final class AtomicFiles {
      * system allows it. {@code staged} should be in the target's directory, since only
      * same-directory moves are reliably atomic.
      */
-    public static void replace(Path staged, Path target) throws IOException {
+    static void replace(Path staged, Path target) throws IOException {
         replace(staged, target, Files::move);
     }
 
     /** The temporary file {@link #write} uses for {@code target}. */
-    public static Path stagingPath(Path target) {
+    static Path stagingPath(Path target) {
         Path fileName = Objects.requireNonNull(target, "target").getFileName();
         if (fileName == null) {
             throw new IllegalArgumentException("target must name a file: " + target);
@@ -105,7 +103,7 @@ public final class AtomicFiles {
 
     /** Writes content to a stream; may throw {@link IOException}. */
     @FunctionalInterface
-    public interface IOConsumer<T> {
+    interface IOConsumer<T> {
         void accept(T value) throws IOException;
     }
 

@@ -106,7 +106,8 @@ public final class JsonFile<T> {
                     description,
                     path,
                     failedLoadPolicy == FailedLoadPolicy.KEEP_ORIGINAL
-                            ? "the file will not be overwritten and changes apply for this session only"
+                            ? "the file will not be overwritten and changes apply for this session"
+                                    + " only"
                             : "it will be replaced by the next save",
                     result.cause());
         }
@@ -122,7 +123,7 @@ public final class JsonFile<T> {
      * Whether {@link #save} would write the file, given the most recent load and the failed-load
      * policy.
      */
-    public synchronized boolean savesAllowed() {
+    private synchronized boolean savesAllowed() {
         return failedLoadPolicy == FailedLoadPolicy.ALLOW_OVERWRITE
                 || lastLoad == null
                 || !lastLoad.failed();

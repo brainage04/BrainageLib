@@ -57,7 +57,6 @@ class JsonFileTest {
             JsonFile.LoadResult<Settings> result = file.load();
             assertInstanceOf(JsonFile.LoadResult.Invalid.class, result, document);
             assertTrue(result.failed());
-            assertFalse(file.savesAllowed());
             assertEquals(JsonFile.SaveResult.KEPT_ORIGINAL, file.save(new Settings(1, false)));
             assertEquals(document, Files.readString(file.path()));
         }
@@ -90,7 +89,6 @@ class JsonFileTest {
         Files.writeString(directory.resolve("settings.json"), "{");
         JsonFile<Settings> file = file(JsonFile.FailedLoadPolicy.ALLOW_OVERWRITE);
         assertTrue(file.load().failed());
-        assertTrue(file.savesAllowed());
         assertEquals(JsonFile.SaveResult.SAVED, file.save(new Settings(1, true)));
         assertInstanceOf(JsonFile.LoadResult.Loaded.class, file.load());
     }

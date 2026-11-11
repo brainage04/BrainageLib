@@ -2,12 +2,12 @@
 
 ## Dependency
 
-BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:1.3.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:1.3.0` for NeoForge.
+BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:2.0.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:2.0.0` for NeoForge.
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:1.3.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:1.3.0"
+    implementation "io.github.brainage04:brainagelib:2.0.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:2.0.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:1.3.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:2.0.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`:
 ```json
 {
   "depends": {
-    "brainagelib": ">=1.3.0"
+    "brainagelib": ">=2.0.0"
   }
 }
 ```
@@ -36,7 +36,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:1.3.0")
+        coordinate.set("io.github.brainage04:brainagelib:2.0.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -61,6 +61,14 @@ Messages receive a grey `[Example Mod]` prefix and a consistent yellow, green, o
 
 Command-source failures keep the same grey prefix as player errors.
 
+A player-only command binds its player with `requirePlayer`, which sends
+`ModFeedback.PLAYERS_ONLY_MESSAGE` to any other source and plays the click sound for a player:
+
+```java
+ServerPlayer player = FEEDBACK.requirePlayer(source);
+if (player == null) return 0;
+```
+
 ## Combined server help
 
 Register each installed server mod during initialization:
@@ -77,12 +85,25 @@ ServerModHelpRegistry.register(new ServerModHelpEntry(
 
 Use `ServerModHelpEntry.playerOnly(...)` when the mod has no operator configuration command.
 
+`HelpPage` prints a mod's own `/<mod>` page in the same style and registers the root and its `help` child together:
+
+```java
+HelpPage.create(FEEDBACK, "example")
+        .line("/example - show this page")
+        .line("/example <mode> - switch to a mode")
+        .line("You can have up to %d modes.", MODES.size())
+        .register(dispatcher);
+```
+
+The first line defaults to `Player commands:`; `heading(...)` replaces it. `show(source)` prints the page wherever it is called and returns 1.
+
 ## Saved files
 
 `io.github.brainage04.brainagelib.storage` holds the shared persistence pieces. Each mod keeps its own file format, validation and messages.
 
-- `AtomicFiles.write(path, output -> ...)`, `writeText`, `writeString` and `replace(staged, target)` write `<name>.tmp` next to the target and move it over the target atomically, with a plain replacing move where the file system has no atomic move. A failed write deletes the temporary file and leaves the target unchanged.
-- `JsonFile<T>` reads and writes one JSON document. `load()` returns `Missing`, `Loaded(value)`, `Invalid(exception)` (not JSON, JSON `null`, or rejected by the decoder) or `IoError(exception)`. `save(value)` returns `SAVED`, `FAILED` or `KEPT_ORIGINAL`.
+- `AtomicFiles.writeString(path, text)` writes `<name>.tmp` next to the target and moves it over the target atomically, with a plain replacing move where the file system has no atomic move. A failed write deletes the temporary file and leaves the target unchanged.
+- `JsonFile<T>` reads and writes one JSON document. `load()` returns `Missing`, `Loaded(value)`, `Invalid(exception)` (not JSON, JSON `null`, or rejected by the decoder) or `IoError(exception)`; `lastLoad()` returns the most recent result. `save(value)` returns `SAVED`, `FAILED` or `KEPT_ORIGINAL`.
+- `ConfigFile<T>` is a mod's own config: one document, one default value and the value in effect, without repeating the file setup.
 - `WorldPlayerStore<P>` keeps UUID-keyed player preferences in a world-folder file shaped `{"schemaVersion": N, "players": {"<uuid>": {...}}}`. Call `load(server)` when the server starts (a missing file is created empty) and `close()` when it stops.
 
 A file that failed to load is never overwritten by default (`FailedLoadPolicy.KEEP_ORIGINAL`): changes stay in memory for the session, `save` returns `KEPT_ORIGINAL`, and the mod tells the player or console that the change was not saved. A later successful load allows saves again. Choose `ALLOW_OVERWRITE` only for files that are safe to replace.
@@ -96,6 +117,35 @@ private static final WorldPlayerStore<Preference> PLAYERS = WorldPlayerStore
 
 boolean saved = PLAYERS.save().saved();
 ```
+
+`ConfigFile<T>` takes the file, the Gson, the type and the default value; a missing file is created by saving the default value, so the default is the whole document. The mod changes the value and calls `save()`:
+
+```java
+private static ConfigFile<ExampleConfig> file;
+
+public static void initialize(Path configDirectory) {
+    file = ConfigFile.builder(
+                    configDirectory.resolve("example.json"), GSON, ExampleConfig.class, new ExampleConfig())
+            .description("Example configuration")
+            .logger(LOGGER)
+            .build();
+    file.loadOrCreate();
+}
+
+public static ExampleConfig config() {
+    return file.value();
+}
+
+public static boolean save() {
+    return file.save();
+}
+
+public static boolean reload() {
+    return file.reload();
+}
+```
+
+`loadOrCreate()` replaces the value when the document loads and writes the default document when the file is missing; `reload()` only replaces the value, so a deleted file stays deleted. A file that failed to load is never overwritten: the value stays, `save()` returns false and the change applies for the session only. Add `.decoder(...)` for validation, normalisation or migration.
 
 Load problems, refused saves and write failures are logged by BrainageLib.
 
@@ -131,20 +181,21 @@ DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:1.3.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:2.0.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:1.3.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:1.3.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.0.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.0.0"
 }
 ```
 
 Add both lines to the Fabric and the NeoForge project. `productionRuntimeMods` only feeds the production GameTest runs, not the release JAR.
 
 - `GameTestPlayer.join(helper, name)` joins a real player through `PlayerList.placeNewPlayer` with a server packet listener on an in-memory connection. `command("...")` runs a command through the chat-command packet, `messages()`/`messageTexts()`/`received(text)` return the system chat messages the client was sent, and `gameMode`, `markLoaded` and `moveTo` set the player up. Use it with try-with-resources: `close()` removes the player, disconnects the listener and releases the channel.
+- `GameTestPlayer.mock(helper)` and `mock(helper, gameMode)` join a mocked player in creative mode with the name `test-mock-player`, the supported replacement for `GameTestHelper.makeMockServerPlayerInLevel()`; close it like any other fixture.
 - `CapturedCommandOutput` is a command source that keeps every message; `source(server)` gives a server command source that reports to it.
 
 ## Build and tests

@@ -123,11 +123,6 @@ public final class WorldPlayerStore<P> {
                 Objects.requireNonNull(id, "id"), Objects.requireNonNull(preference, "preference"));
     }
 
-    /** Whether a world's file is loaded. */
-    public synchronized boolean isOpen() {
-        return file != null;
-    }
-
     /**
      * Writes every stored preference; {@link JsonFile.SaveResult#FAILED} when no world is loaded.
      */

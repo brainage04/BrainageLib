@@ -11,6 +11,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
 public final class ModFeedback {
+    /** What {@link #requirePlayer} sends to a command source that is not a player. */
+    public static final String PLAYERS_ONLY_MESSAGE = "This command can only be used by players!";
+
     private final String modName;
 
     private ModFeedback(String modName) {
@@ -89,7 +92,23 @@ public final class ModFeedback {
                         0L));
     }
 
-    public MutableComponent decorate(ChatFormatting bodyFormatting, Component message) {
+    /**
+     * The player who ran {@code source}'s command, or null after asking them to use it as a player;
+     * a player also hears the click sound. Commands that bind a {@link ServerPlayer} start with
+     * this instead of repeating the check and the sound.
+     */
+    public ServerPlayer requirePlayer(CommandSourceStack source) {
+        Objects.requireNonNull(source, "source");
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            failure(source, PLAYERS_ONLY_MESSAGE);
+            return null;
+        }
+        click(player);
+        return player;
+    }
+
+    MutableComponent decorate(ChatFormatting bodyFormatting, Component message) {
         Objects.requireNonNull(bodyFormatting, "bodyFormatting");
         Objects.requireNonNull(message, "message");
         return Component.literal("[" + modName + "] ")

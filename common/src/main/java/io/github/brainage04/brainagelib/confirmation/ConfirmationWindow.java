@@ -29,10 +29,6 @@ public final class ConfirmationWindow<K> {
         this.boundary = Objects.requireNonNull(boundary, "boundary");
     }
 
-    public long windowTicks() {
-        return windowTicks;
-    }
-
     /**
      * Confirms and consumes an open request for {@code key}, or records a new request at {@code
      * nowTick}.
@@ -45,12 +41,6 @@ public final class ConfirmationWindow<K> {
         }
         requestedAt.put(key, nowTick);
         return Outcome.REQUESTED;
-    }
-
-    /** Whether {@code key} has a request that is still open at {@code nowTick}. */
-    public synchronized boolean isPending(K key, long nowTick) {
-        Long requested = requestedAt.get(key);
-        return requested != null && isOpen(requested, nowTick);
     }
 
     /** Drops the request for {@code key}, if any. */

@@ -3,9 +3,7 @@ package io.github.brainage04.brainagelib.confirmation;
 import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.CONFIRMED;
 import static io.github.brainage04.brainagelib.confirmation.ConfirmationWindow.Outcome.REQUESTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,10 +25,13 @@ class ConfirmationWindowTest {
     void exclusiveWindowClosesOnItsLastTick() {
         var window = new ConfirmationWindow<String>(200, ConfirmationWindow.Boundary.EXCLUSIVE);
         assertEquals(REQUESTED, window.requestOrConfirm("alex", 0));
-        assertTrue(window.isPending("alex", 199));
-        assertFalse(window.isPending("alex", 200));
+        assertEquals(CONFIRMED, window.requestOrConfirm("alex", 199));
         assertEquals(REQUESTED, window.requestOrConfirm("alex", 200));
         assertEquals(CONFIRMED, window.requestOrConfirm("alex", 399));
+        assertEquals(
+                REQUESTED,
+                window.requestOrConfirm("alex", 599),
+                "An exclusive window closes exactly when it is that old");
     }
 
     @Test
@@ -44,7 +45,6 @@ class ConfirmationWindowTest {
         assertEquals(List.of(), expired);
         window.expire(200, expired::add);
         assertEquals(List.of("alex"), expired);
-        assertFalse(window.isPending("alex", 200));
         window.cancel("sam");
         assertEquals(REQUESTED, window.requestOrConfirm("sam", 201));
         window.clear();

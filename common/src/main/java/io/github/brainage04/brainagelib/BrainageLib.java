@@ -9,9 +9,4 @@ public final class BrainageLib {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_NAME);
 
     private BrainageLib() {}
-
-    public static void initialize() {
-        LOGGER.info("{} initialising...", MOD_NAME);
-        LOGGER.info("{} initialised.", MOD_NAME);
-    }
 }

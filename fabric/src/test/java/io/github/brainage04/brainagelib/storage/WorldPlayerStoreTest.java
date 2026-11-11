@@ -40,14 +40,22 @@ class WorldPlayerStoreTest {
         String previous =
                 "{\n  \"schemaVersion\": 1,\n  \"players\": {\n    \""
                         + FIRST
-                        + "\": {\n      \"lastKnownName\": \"Alex\",\n      \"enabled\": false\n    }\n  }\n}";
+                        + "\": {\n"
+                        + "      \"lastKnownName\": \"Alex\",\n"
+                        + "      \"enabled\": false\n"
+                        + "    }\n"
+                        + "  }\n"
+                        + "}";
         Files.writeString(path, previous);
         WorldPlayerStore<Preference> store = store();
         assertInstanceOf(JsonFile.LoadResult.Loaded.class, store.load(path));
         assertEquals(new Preference("Alex", false), store.get(FIRST));
         assertEquals(JsonFile.SaveResult.SAVED, store.close());
         assertEquals(previous, Files.readString(path));
-        assertFalse(store.isOpen());
+        assertEquals(
+                JsonFile.SaveResult.FAILED,
+                store.save(),
+                "A closed store has no world left to save to");
     }
 
     @Test

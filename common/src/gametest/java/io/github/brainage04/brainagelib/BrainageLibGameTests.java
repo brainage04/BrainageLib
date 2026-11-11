@@ -1,10 +1,12 @@
 package io.github.brainage04.brainagelib;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.brainage04.brainagelib.feedback.ModFeedback;
 import io.github.brainage04.brainagelib.gametest.CapturedCommandOutput;
 import io.github.brainage04.brainagelib.gametest.GameTestPlayer;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
+import io.github.brainage04.brainagelib.help.HelpPage;
 import io.github.brainage04.brainagelib.help.ServerModHelpEntry;
 import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -74,8 +77,28 @@ public final class BrainageLibGameTests {
             context.assertFalse(
                     output.text().contains("Alpha Test Tools"),
                     "Player-only mods must not appear in config output");
+            var helpPage = new CommandDispatcher<CommandSourceStack>();
+            HelpPage.create(ModFeedback.create("Help Tools"), "helppagetest")
+                    .line("/helppagetest - show this page")
+                    .line("You can have up to %d lines.", 2)
+                    .register(helpPage);
+            List<String> page =
+                    List.of(
+                            "[Help Tools] Player commands:",
+                            "[Help Tools] /helppagetest - show this page",
+                            "[Help Tools] You can have up to 2 lines.");
+            output.clear();
+            context.assertValueEqual(
+                    helpPage.execute("helppagetest", source), 1, "Help page root result");
+            context.assertValueEqual(
+                    output.messageTexts(), page, "The help page must print its heading and lines");
+            output.clear();
+            context.assertValueEqual(
+                    helpPage.execute("helppagetest help", source), 1, "Help page help result");
+            context.assertValueEqual(
+                    output.messageTexts(), page, "The help child must print the same page");
         } catch (CommandSyntaxException exception) {
-            throw new AssertionError("Expected a valid servermods command", exception);
+            throw new AssertionError("Expected a valid help command", exception);
         } finally {
             ServerModHelpRegistry.unregister(configurable);
             ServerModHelpRegistry.unregister(playerOnly);
@@ -95,12 +118,29 @@ public final class BrainageLibGameTests {
         context.assertValueEqual(
                 output.messages().size(), 3, "Each feedback call must send one message");
         assertFormatted(context, output.messages());
+        output.clear();
+        context.assertTrue(
+                feedback.requirePlayer(source) == null,
+                "A console source must not satisfy a player-only command");
+        context.assertValueEqual(
+                output.messageTexts(),
+                List.of("[Test Tools] " + ModFeedback.PLAYERS_ONLY_MESSAGE),
+                "The player-only failure states who can run the command");
         try (var player = GameTestPlayer.join(context, "FeedbackTest")) {
             player.clearMessages();
             feedback.neutral(player.player(), "Mode: %s", "safe");
             feedback.success(player.player(), "Saved %s", "settings");
             feedback.error(player.player(), "Cannot save %s", "settings");
             assertFormatted(context, player.messages());
+            player.clearMessages();
+            context.assertValueEqual(
+                    feedback.requirePlayer(player.player().createCommandSourceStack()),
+                    player.player(),
+                    "A joined player satisfies a player-only command");
+            context.assertValueEqual(
+                    player.messageTexts().size(),
+                    0,
+                    "The click sound is a packet, not a chat message");
         }
         context.succeed();
     }
@@ -132,7 +172,8 @@ public final class BrainageLibGameTests {
                             .anyMatch(
                                     text ->
                                             text.contains(
-                                                    "Fixture Test Tools: Fixture tools. /fixture help")),
+                                                    "Fixture Test Tools: Fixture tools. /fixture"
+                                                            + " help")),
                     "A command run through the chat-command packet must answer the player, got "
                             + fixture.messageTexts());
         } finally {
@@ -146,6 +187,20 @@ public final class BrainageLibGameTests {
         context.assertFalse(
                 fixture.connection().isConnected(), "Closing must disconnect the listener");
         fixture.close();
+        ServerPlayer mocked;
+        try (GameTestPlayer mock = GameTestPlayer.mock(context)) {
+            mocked = mock.player();
+            context.assertValueEqual(
+                    mocked.getScoreboardName(), "test-mock-player", "A mocked player's name");
+            context.assertTrue(
+                    mocked.gameMode() == GameType.CREATIVE, "A mocked player starts in creative");
+            context.assertTrue(
+                    server.getPlayerList().getPlayer(mocked.getUUID()) == mocked,
+                    "A mocked player joins the server");
+        }
+        context.assertTrue(
+                server.getPlayerList().getPlayer(mocked.getUUID()) == null,
+                "Closing a mocked player must remove it");
         context.succeed();
     }
 

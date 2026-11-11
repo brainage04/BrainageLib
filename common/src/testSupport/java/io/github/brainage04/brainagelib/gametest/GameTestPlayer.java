@@ -31,6 +31,8 @@ import net.minecraft.world.level.GameType;
  * part of a mod's runtime JAR.
  */
 public final class GameTestPlayer implements AutoCloseable {
+    private static final String MOCK_PLAYER_NAME = "test-mock-player";
+
     private final MinecraftServer server;
     private final ServerPlayer player;
     private final Connection connection;
@@ -70,6 +72,22 @@ public final class GameTestPlayer implements AutoCloseable {
             throw exception;
         }
         return new GameTestPlayer(server, player, connection, channel);
+    }
+
+    /**
+     * Joins a mocked player in creative mode: a random UUID and the name {@code test-mock-player},
+     * which is how {@code GameTestHelper.makeMockServerPlayerInLevel()} joins one (26.3's copy of
+     * that method is deprecated for removal and never removes the player). Close the result like
+     * any other fixture.
+     */
+    public static GameTestPlayer mock(GameTestHelper helper) {
+        return mock(helper, GameType.CREATIVE);
+    }
+
+    /** Joins a mocked player in {@code gameMode}; see {@link #mock(GameTestHelper)}. */
+    public static GameTestPlayer mock(GameTestHelper helper, GameType gameMode) {
+        return join(helper, new GameProfile(UUID.randomUUID(), MOCK_PLAYER_NAME))
+                .gameMode(gameMode);
     }
 
     public ServerPlayer player() {
