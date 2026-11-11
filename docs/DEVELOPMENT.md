@@ -158,7 +158,17 @@ Load problems, refused saves and write failures are logged by BrainageLib.
 `io.github.brainage04.brainagelib.drops` sends drops and experience to the player responsible for them, for every mod that installs a policy. BrainageLib's own mixins open a capture scope for:
 
 - a block a player breaks (`ServerPlayerGameMode.destroyBlock`, and `Block.dropResources` with a player as breaker for mods that call `playerDestroy` or `Level.destroyBlock` themselves), including a broken container's contents and the block's experience;
-- a mob's death loot and experience, for the player vanilla credits with the kill (`getLastHurtByPlayer` within its 100-tick memory: melee, owned projectiles and potions, a tamed wolf); a killed player's own drops always stay in the world;
+- a mob's death loot and experience, for the player vanilla credits with the kill, which is what
+  `LivingEntity#getKillCredit()` returns: the player who hurt it within the game's 100-tick memory
+  (melee, an owned projectile, potion or firework, thorns from armour they wear, a tamed wolf, TNT
+  they lit) or the player its last-hurt record still names after that timer ran out. A hit inside
+  the 100 ticks keeps the credit for a death from anything else, such as a fall, lava, the void or
+  another mob's blow. A killed player's own drops always stay in the world;
+- the drops of an item frame, glow item frame, painting, cushion or armour stand a player breaks:
+  the decoration's own item and the item it held, or the stand and its equipment. A blast the
+  player caused counts too, through the player the blast names. A blast that names nobody (a
+  creeper's), a fire and a decoration that lost its support leave the drops in the world, and a
+  creative break drops nothing at all;
 - the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
 - the ender dragon's death-animation experience, for its killer;
 - a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.

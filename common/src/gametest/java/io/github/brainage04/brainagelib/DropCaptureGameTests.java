@@ -12,14 +12,28 @@ import java.util.UUID;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.protocol.game.ClientboundExplodePacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.decoration.Cushion;
+import net.minecraft.world.entity.decoration.GlowItemFrame;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.decoration.painting.Painting;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.entity.monster.zombie.Husk;
+import net.minecraft.world.entity.variant.VariantUtils;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,13 +51,14 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-/// Each policy governs only the players of its test, so tests running side by side never decide
-/// for each other.
+/// Each policy governs only the players of its test, so tests running side by side never decide for
+/// each other.
 public final class DropCaptureGameTests {
     private static final BlockPos FIRST_POS = new BlockPos(1, 1, 1);
     private static final BlockPos SECOND_POS = new BlockPos(5, 1, 1);
     private static final BlockPos BLOCK_POS = new BlockPos(3, 1, 3);
     private static final BlockPos FAR_POS = new BlockPos(3, 1, 10);
+    private static final BlockPos MOB_POS = new BlockPos(3, 1, 6);
 
     /// Rolls of a decaying oak leaf's loot table. It pays out on only about 7% of leaves (a sapling
     /// 5%, sticks 2%, an apple 0.5%; `data/minecraft/loot_table/blocks/oak_leaves.json`), so 300
@@ -271,6 +286,358 @@ public final class DropCaptureGameTests {
                             bed.setValue(BedBlock.PART, BedPart.HEAD),
                             Block.UPDATE_CLIENTS);
                 });
+    }
+
+    public static void armorStandBrokenByPlayerIsCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcStand", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos at = helper.absolutePos(BLOCK_POS);
+                ArmorStand stand =
+                        new ArmorStand(level, at.getX() + 0.5D, at.getY(), at.getZ() + 0.5D);
+                stand.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+                stand.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.DIAMOND_SWORD));
+                check(level.addFreshEntity(stand), "The stand must spawn");
+
+                punchStandTwice(stand, level, player);
+
+                check(stand.isRemoved(), "The second punch must break the stand");
+                checkCount(player, Items.ARMOR_STAND, 1, "a stand a player broke");
+                checkCount(player, Items.IRON_HELMET, 1, "a broken stand's helmet");
+                checkCount(player, Items.DIAMOND_SWORD, 1, "a broken stand's sword");
+                check(
+                        itemsNear(level, at, null) == 0,
+                        "Nothing of a stand a player broke may stay on the ground");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A blast that breaks a stand names no player, so the stand's equipment stays where it broke.
+    /// That path never drops the stand itself.
+    public static void armorStandBrokenByABlastStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcBlastStand", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos at = helper.absolutePos(BLOCK_POS);
+                ArmorStand stand =
+                        new ArmorStand(level, at.getX() + 0.5D, at.getY(), at.getZ() + 0.5D);
+                stand.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+                check(level.addFreshEntity(stand), "The stand must spawn");
+
+                DamageSource blast = level.damageSources().explosion((Entity) null, (Entity) null);
+                stand.hurtServer(level, blast, 1.0F);
+
+                check(stand.isRemoved(), "A blast must break the stand");
+
+                checkCount(player, Items.IRON_HELMET, 0, "a stand a blast broke");
+                checkCount(player, Items.ARMOR_STAND, 0, "a stand a blast broke");
+                check(
+                        itemsNear(level, at.above(), Items.IRON_HELMET) == 1,
+                        "The blast-broken stand's helmet must stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A blast the player caused names them, so a stand it breaks still hands them its equipment.
+    public static void armorStandBrokenByAPlayersBlastIsCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcOwnBlast", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos at = helper.absolutePos(BLOCK_POS);
+                ArmorStand stand =
+                        new ArmorStand(level, at.getX() + 0.5D, at.getY(), at.getZ() + 0.5D);
+                stand.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+                check(level.addFreshEntity(stand), "The stand must spawn");
+                PrimedTnt tnt = new PrimedTnt(level, at.getX(), at.getY(), at.getZ(), player);
+
+                DamageSource blast = level.damageSources().explosion(tnt, player);
+                stand.hurtServer(level, blast, 1.0F);
+
+                check(stand.isRemoved(), "The player's blast must break the stand");
+
+                checkCount(player, Items.IRON_HELMET, 1, "a stand the player's own blast broke");
+                check(
+                        itemsNear(level, at.above(), Items.IRON_HELMET) == 0,
+                        "A stand the player's blast broke must not leave its helmet behind");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A cushion is a block-attached decoration too, so the same scope hands its item to the player
+    /// who breaks it.
+    public static void cushionBrokenByPlayerIsCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcCushion", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos at = helper.absolutePos(BLOCK_POS);
+                Cushion cushion = new Cushion(EntityTypes.CUSHION, level);
+                cushion.setPos(at.getX() + 0.5D, at.getY(), at.getZ() + 0.5D);
+                check(level.addFreshEntity(cushion), "The cushion must spawn");
+
+                check(
+                        cushion.hurtServer(level, level.damageSources().playerAttack(player), 0.0F),
+                        "The punch must break the cushion");
+
+                check(cushion.isRemoved(), "The broken cushion must be removed");
+                checkCount(
+                        player, Items.CUSHION.pick(DyeColor.WHITE), 1, "a cushion a player broke");
+                check(
+                        itemsNear(level, at, Items.CUSHION.pick(DyeColor.WHITE)) == 0,
+                        "A broken cushion must not stay on the ground");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A punch knocks the framed item out first; the next one breaks the frame. Both belong to the
+    /// player, for a plain and a glowing frame.
+    public static void itemFramesBrokenByPlayerAreCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcFrames", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos plainWall = helper.absolutePos(BLOCK_POS);
+                ItemFrame frame =
+                        hangingFrame(
+                                level,
+                                plainWall,
+                                new ItemFrame(level, plainWall.north(), Direction.NORTH),
+                                Items.DIAMOND);
+                punchFrameTwice(frame, level, player);
+                check(frame.isRemoved(), "The second punch must break the frame");
+                checkCount(player, Items.DIAMOND, 1, "the item a punch knocked out of a frame");
+                checkCount(player, Items.ITEM_FRAME, 1, "an item frame a player broke");
+                check(
+                        itemsNear(level, plainWall.north(), null) == 0,
+                        "Nothing of a frame a player broke may stay on the ground");
+
+                BlockPos glowWall = helper.absolutePos(MOB_POS);
+                ItemFrame glow =
+                        hangingFrame(
+                                level,
+                                glowWall,
+                                new GlowItemFrame(level, glowWall.north(), Direction.NORTH),
+                                Items.EMERALD);
+                punchFrameTwice(glow, level, player);
+                check(glow.isRemoved(), "The second punch must break the glow frame");
+                checkCount(
+                        player, Items.EMERALD, 1, "the item a punch knocked out of a glow frame");
+                checkCount(player, Items.GLOW_ITEM_FRAME, 1, "a glow item frame a player broke");
+                check(
+                        itemsNear(level, glowWall.north(), null) == 0,
+                        "Nothing of a glow frame a player broke may stay on the ground");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    public static void paintingBrokenByPlayerIsCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcPainting", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                BlockPos wall = helper.absolutePos(BLOCK_POS);
+                level.setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+                Painting painting =
+                        new Painting(
+                                level,
+                                wall.north(),
+                                Direction.NORTH,
+                                VariantUtils.getAny(
+                                        level.registryAccess(), Registries.PAINTING_VARIANT));
+                check(level.addFreshEntity(painting), "The painting must spawn");
+
+                DamageSource punch = level.damageSources().playerAttack(player);
+                check(painting.hurtServer(level, punch, 0.0F), "The punch must break the painting");
+
+                check(painting.isRemoved(), "The broken painting must be removed");
+                checkCount(player, Items.PAINTING, 1, "a painting a player broke");
+                check(
+                        itemsNear(level, wall.north(), Items.PAINTING) == 0,
+                        "A broken painting must not stay on the ground");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    public static void decorationBrokenWithoutAPolicyStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcNoPolicy", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            BlockPos wall = helper.absolutePos(BLOCK_POS);
+            ItemFrame frame =
+                    hangingFrame(
+                            level,
+                            wall,
+                            new ItemFrame(level, wall.north(), Direction.NORTH),
+                            Items.DIAMOND);
+
+            punchFrameTwice(frame, level, player);
+
+            checkCount(player, Items.DIAMOND, 0, "a player no policy governs");
+            checkCount(player, Items.ITEM_FRAME, 0, "a player no policy governs");
+            check(
+                    itemsNear(level, wall.north(), Items.DIAMOND) == 1,
+                    "The punched-out item must stay in the world");
+            check(
+                    itemsNear(level, wall.north(), Items.ITEM_FRAME) == 1,
+                    "The broken frame must stay in the world");
+        }
+        helper.succeed();
+    }
+
+    /// A minigame's match policy governs its players above a general mod's, and the entity scopes
+    /// are decided by the same policy lookup as the block ones.
+    public static void matchPolicyGovernsDecorationBreaks(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcMatchFrame", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy general = new TestPolicy(Set.of(player.getUUID()), true);
+            TestPolicy match = new TestPolicy(Set.of(player.getUUID()), false);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, general);
+            DropPolicies.register(DropPolicies.MATCH_PRIORITY, match);
+            try {
+                BlockPos wall = helper.absolutePos(BLOCK_POS);
+                ItemFrame frame =
+                        hangingFrame(
+                                level,
+                                wall,
+                                new ItemFrame(level, wall.north(), Direction.NORTH),
+                                Items.DIAMOND);
+
+                punchFrameTwice(frame, level, player);
+
+                checkCount(player, Items.DIAMOND, 0, "a player in a match that keeps drops");
+                checkCount(player, Items.ITEM_FRAME, 0, "a player in a match that keeps drops");
+                check(
+                        itemsNear(level, wall.north(), Items.DIAMOND) == 1,
+                        "A match player's punched-out item must stay in the world");
+                check(
+                        itemsNear(level, wall.north(), Items.ITEM_FRAME) == 1,
+                        "A match player's broken frame must stay in the world");
+            } finally {
+                DropPolicies.unregister(match);
+                DropPolicies.unregister(general);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// The game's kill credit can name a player through its last-hurt record while its own 100-tick
+    /// player timer is out; the kill statistic and advancement still go to that player.
+    public static void killCreditedWithoutAPlayerHitGoesToTheKiller(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcCredit", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                Husk husk = gearedHusk(helper, MOB_POS);
+                husk.setLastHurtByMob(player);
+                check(
+                        husk.getLastHurtByPlayerMemoryTime() == 0,
+                        "The husk must have no player hit on its timer");
+
+                husk.kill(level);
+
+                checkCount(player, Items.IRON_HELMET, 1, "a kill the game credits to the player");
+                check(
+                        itemsNear(level, helper.absolutePos(MOB_POS).above(), Items.IRON_HELMET)
+                                == 0,
+                        "A credited kill's helmet must not stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    public static void killNoPlayerIsCreditedWithStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcUncredited", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                Husk husk = gearedHusk(helper, MOB_POS);
+                check(husk.getLastHurtByMob() == null, "The husk must have been hurt by nobody");
+
+                husk.kill(level);
+
+                checkCount(player, Items.IRON_HELMET, 0, "a kill nobody is credited with");
+                check(
+                        itemsNear(level, helper.absolutePos(MOB_POS).above(), Items.IRON_HELMET)
+                                == 1,
+                        "An uncredited kill's helmet must stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// Two punches in one tick. The first only shakes the stand, because `ArmorStand.hurtServer`
+    /// refuses to break one again within five ticks of the last hit unless the damage type always
+    /// kills it; the second breaks it and drops the stand and its equipment.
+    private static void punchStandTwice(ArmorStand stand, ServerLevel level, ServerPlayer player) {
+        DamageSource punch = level.damageSources().playerAttack(player);
+        stand.hurtServer(level, punch, 1.0F);
+        stand.hurtServer(level, punch, 1.0F);
+    }
+
+    private static ItemFrame hangingFrame(
+            ServerLevel level, BlockPos wall, ItemFrame frame, Item content) {
+        level.setBlockAndUpdate(wall, Blocks.STONE.defaultBlockState());
+        frame.setItem(new ItemStack(content));
+        check(level.addFreshEntity(frame), "The " + content + " frame must spawn");
+        return frame;
+    }
+
+    private static void punchFrameTwice(ItemFrame frame, ServerLevel level, ServerPlayer player) {
+        DamageSource punch = level.damageSources().playerAttack(player);
+        check(frame.hurtServer(level, punch, 0.0F), "The first punch must knock the item out");
+        check(frame.hurtServer(level, punch, 0.0F), "The second punch must break the frame");
+    }
+
+    /// A husk with a helmet that always drops, so its death's equipment is exact: the loot table's
+    /// random drops do not matter.
+    private static Husk gearedHusk(GameTestHelper helper, BlockPos relative) {
+        Husk husk = helper.spawn(EntityTypes.HUSK, relative);
+        husk.setNoAi(true);
+        husk.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+        husk.setDropChance(EquipmentSlot.HEAD, 2.0F);
+        return husk;
     }
 
     /// Builds a closed room in a force-loaded chunk of the End, far from its islands, places the

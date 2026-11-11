@@ -19,12 +19,12 @@ import org.jspecify.annotations.Nullable;
  * Sends the items and experience spawned inside a capture scope to the scope's player, when the
  * {@link DropPolicies} deliver to them.
  *
- * <p>A scope covers one player block break, one mob's death loot credited to a player, the block
- * drops of one explosion a player caused, or a decaying leaf of a tree a player felled ({@link
- * LeafOwners}). Scopes nest; the innermost one decides. A mob death or explosion without a player
- * cause opens no scope, so inside a block break its drops still go to the breaker. A player's own
- * death drops open a scope for nobody (a {@code null} player), which keeps any outer scope from
- * handing that inventory to someone else.
+ * <p>A scope covers one player block break, one mob's death loot credited to a player, one hanging
+ * decoration or armour stand a player breaks, the block drops of one explosion a player caused, or
+ * a decaying leaf of a tree a player felled ({@link LeafOwners}). Scopes nest; the innermost one
+ * decides. A mob death or explosion without a player cause opens no scope, so inside a block break
+ * its drops still go to the breaker. A player's own death drops open a scope for nobody (a {@code
+ * null} player), which keeps any outer scope from handing that inventory to someone else.
  *
  * <p>What fits goes into the inventory; the rest is moved to the player's feet. A stack the
  * governing policy refuses ({@link DropPolicy#accepts}) stays where the game spawned it. Experience
@@ -81,16 +81,17 @@ public final class DropCapture {
     }
 
     /**
-     * The player the game credits with killing {@code victim}, or {@code null}: the player who hurt
-     * it within the last 100 ticks, directly, with a projectile or damaging potion they own, or
-     * through their tamed wolf. Vanilla uses the same record, with the same {@code
-     * lastHurtByPlayerMemoryTime > 0} test, for player-kill loot and experience.
+     * The player the game credits with killing {@code victim}, or {@code null}: vanilla's own
+     * record, {@link LivingEntity#getKillCredit()}, the one it awards the kill statistic and the
+     * {@code player_killed_entity} advancement from. That is the player who hurt the victim
+     * directly, with a projectile, potion or firework they own, with thorns from armour they wear,
+     * through their tamed wolf, or who lit the TNT that killed it, for the 100 ticks the game
+     * remembers the hit. A hit inside those 100 ticks keeps the credit for a death from anything
+     * else, such as a fall, lava, the void or another mob's blow; once the game has forgotten the
+     * hit, the death is nobody's.
      */
     public static @Nullable ServerPlayer mobKiller(LivingEntity victim) {
-        if (victim.getLastHurtByPlayerMemoryTime() <= 0) {
-            return null;
-        }
-        return victim.getLastHurtByPlayer() instanceof ServerPlayer player ? player : null;
+        return victim.getKillCredit() instanceof ServerPlayer player ? player : null;
     }
 
     /**

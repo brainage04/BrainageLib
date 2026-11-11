@@ -59,7 +59,37 @@ public final class BrainageLibNeoForgeGameTests {
                             DropCaptureGameTests::respawnAnchorClickCreditsTheClicker),
                     new TestFunction(
                             "bed_click_credits_the_clicker",
-                            DropCaptureGameTests::bedClickCreditsTheClicker));
+                            DropCaptureGameTests::bedClickCreditsTheClicker),
+                    new TestFunction(
+                            "armor_stand_broken_by_player_is_captured",
+                            DropCaptureGameTests::armorStandBrokenByPlayerIsCaptured),
+                    new TestFunction(
+                            "armor_stand_broken_by_a_blast_stays_in_the_world",
+                            DropCaptureGameTests::armorStandBrokenByABlastStaysInTheWorld),
+                    new TestFunction(
+                            "armor_stand_broken_by_a_players_blast_is_captured",
+                            DropCaptureGameTests::armorStandBrokenByAPlayersBlastIsCaptured),
+                    new TestFunction(
+                            "item_frames_broken_by_player_are_captured",
+                            DropCaptureGameTests::itemFramesBrokenByPlayerAreCaptured),
+                    new TestFunction(
+                            "cushion_broken_by_player_is_captured",
+                            DropCaptureGameTests::cushionBrokenByPlayerIsCaptured),
+                    new TestFunction(
+                            "painting_broken_by_player_is_captured",
+                            DropCaptureGameTests::paintingBrokenByPlayerIsCaptured),
+                    new TestFunction(
+                            "decoration_broken_without_a_policy_stays_in_the_world",
+                            DropCaptureGameTests::decorationBrokenWithoutAPolicyStaysInTheWorld),
+                    new TestFunction(
+                            "match_policy_governs_decoration_breaks",
+                            DropCaptureGameTests::matchPolicyGovernsDecorationBreaks),
+                    new TestFunction(
+                            "kill_credited_without_a_player_hit_goes_to_the_killer",
+                            DropCaptureGameTests::killCreditedWithoutAPlayerHitGoesToTheKiller),
+                    new TestFunction(
+                            "kill_no_player_is_credited_with_stays_in_the_world",
+                            DropCaptureGameTests::killNoPlayerIsCreditedWithStaysInTheWorld));
 
     private BrainageLibNeoForgeGameTests() {}
 
