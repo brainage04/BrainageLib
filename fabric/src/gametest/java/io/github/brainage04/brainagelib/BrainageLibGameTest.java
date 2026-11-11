@@ -123,4 +123,29 @@ public final class BrainageLibGameTest {
     public void killNoPlayerIsCreditedWithStaysInTheWorld(GameTestHelper context) {
         DropCaptureGameTests.killNoPlayerIsCreditedWithStaysInTheWorld(context);
     }
+
+    @GameTest
+    public void vehiclesBrokenByPlayerAreCaptured(GameTestHelper context) {
+        DropCaptureGameTests.vehiclesBrokenByPlayerAreCaptured(context);
+    }
+
+    @GameTest
+    public void minecartsBrokenByPlayerAreCaptured(GameTestHelper context) {
+        DropCaptureGameTests.minecartsBrokenByPlayerAreCaptured(context);
+    }
+
+    @GameTest
+    public void vehicleBrokenWithoutAPlayerStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.vehicleBrokenWithoutAPlayerStaysInTheWorld(context);
+    }
+
+    @GameTest
+    public void creativeBreakOfVehicleStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.creativeBreakOfVehicleStaysInTheWorld(context);
+    }
+
+    @GameTest
+    public void vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(context);
+    }
 }

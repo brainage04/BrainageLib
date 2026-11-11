@@ -16,7 +16,8 @@
 		"ServerExplosionMixin",
 		"ServerLevelMixin",
 		"ServerPlayerGameModeMixin",
-		"ServerPlayerMixin"
+		"ServerPlayerMixin",
+		"VehicleEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

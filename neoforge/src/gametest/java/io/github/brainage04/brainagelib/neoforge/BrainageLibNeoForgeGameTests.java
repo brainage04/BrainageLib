@@ -89,7 +89,22 @@ public final class BrainageLibNeoForgeGameTests {
                             DropCaptureGameTests::killCreditedWithoutAPlayerHitGoesToTheKiller),
                     new TestFunction(
                             "kill_no_player_is_credited_with_stays_in_the_world",
-                            DropCaptureGameTests::killNoPlayerIsCreditedWithStaysInTheWorld));
+                            DropCaptureGameTests::killNoPlayerIsCreditedWithStaysInTheWorld),
+                    new TestFunction(
+                            "vehicles_broken_by_player_are_captured",
+                            DropCaptureGameTests::vehiclesBrokenByPlayerAreCaptured),
+                    new TestFunction(
+                            "minecarts_broken_by_player_are_captured",
+                            DropCaptureGameTests::minecartsBrokenByPlayerAreCaptured),
+                    new TestFunction(
+                            "vehicle_broken_without_a_player_stays_in_the_world",
+                            DropCaptureGameTests::vehicleBrokenWithoutAPlayerStaysInTheWorld),
+                    new TestFunction(
+                            "creative_break_of_vehicle_stays_in_the_world",
+                            DropCaptureGameTests::creativeBreakOfVehicleStaysInTheWorld),
+                    new TestFunction(
+                            "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
+                            DropCaptureGameTests::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
 
     private BrainageLibNeoForgeGameTests() {}
 

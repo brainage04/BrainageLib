@@ -33,6 +33,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.monster.zombie.Husk;
 import net.minecraft.world.entity.variant.VariantUtils;
+import net.minecraft.world.entity.vehicle.VehicleEntity;
+import net.minecraft.world.entity.vehicle.boat.Boat;
+import net.minecraft.world.entity.vehicle.boat.ChestBoat;
+import net.minecraft.world.entity.vehicle.minecart.Minecart;
+import net.minecraft.world.entity.vehicle.minecart.MinecartChest;
+import net.minecraft.world.entity.vehicle.minecart.MinecartFurnace;
+import net.minecraft.world.entity.vehicle.minecart.MinecartHopper;
+import net.minecraft.world.entity.vehicle.minecart.MinecartTNT;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -248,7 +256,7 @@ public final class DropCaptureGameTests {
                         "No drop of the broken log's leaf may stay on the ground");
             } finally {
                 DropPolicies.unregister(policy);
-                discardItems(level, log);
+                discardItems(level, helper.getBounds());
             }
         }
         helper.succeed();
@@ -607,6 +615,194 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
+    /// A vehicle a player breaks hands over its own item, and a chest boat, chest minecart or
+    /// hopper minecart its contents with it, like any other container.
+    public static void vehiclesBrokenByPlayerAreCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcVehicles", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                Boat boat = helper.spawn(EntityTypes.OAK_BOAT, BLOCK_POS);
+                breakVehicle(boat, player);
+                checkCount(player, Items.OAK_BOAT, 1, "a boat a player broke");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.OAK_BOAT) == 0,
+                        "A broken boat's item must not stay in the world");
+
+                player.getInventory().clearContent();
+                ChestBoat chestBoat = helper.spawn(EntityTypes.OAK_CHEST_BOAT, BLOCK_POS);
+                chestBoat.setItem(0, new ItemStack(Items.EMERALD, 3));
+                breakVehicle(chestBoat, player);
+                checkCount(player, Items.OAK_CHEST_BOAT, 1, "a chest boat a player broke");
+                checkCount(player, Items.EMERALD, 3, "the contents of a chest boat");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), null) == 0,
+                        "Nothing of a chest boat a player broke may stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// The same rule for every minecart. A furnace minecart has no contents to hand over, and a
+    /// TNT minecart drops its item for a plain punch, because only fire and blasts prime it.
+    public static void minecartsBrokenByPlayerAreCaptured(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcMinecarts", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                Minecart minecart = helper.spawn(EntityTypes.MINECART, BLOCK_POS);
+                breakVehicle(minecart, player);
+                checkCount(player, Items.MINECART, 1, "a minecart a player broke");
+
+                player.getInventory().clearContent();
+                MinecartChest chestCart = helper.spawn(EntityTypes.CHEST_MINECART, BLOCK_POS);
+                chestCart.setItem(0, new ItemStack(Items.EMERALD, 2));
+                breakVehicle(chestCart, player);
+                checkCount(player, Items.CHEST_MINECART, 1, "a chest minecart a player broke");
+                checkCount(player, Items.EMERALD, 2, "the contents of a chest minecart");
+
+                player.getInventory().clearContent();
+                MinecartHopper hopperCart = helper.spawn(EntityTypes.HOPPER_MINECART, BLOCK_POS);
+                hopperCart.setItem(0, new ItemStack(Items.DIAMOND, 4));
+                breakVehicle(hopperCart, player);
+                checkCount(player, Items.HOPPER_MINECART, 1, "a hopper minecart a player broke");
+                checkCount(player, Items.DIAMOND, 4, "the contents of a hopper minecart");
+
+                player.getInventory().clearContent();
+                MinecartFurnace furnaceCart = helper.spawn(EntityTypes.FURNACE_MINECART, BLOCK_POS);
+                breakVehicle(furnaceCart, player);
+                checkCount(player, Items.FURNACE_MINECART, 1, "a furnace minecart a player broke");
+
+                player.getInventory().clearContent();
+                MinecartTNT tntCart = helper.spawn(EntityTypes.TNT_MINECART, BLOCK_POS);
+                // One hit that breaks it while it stands still: a moving or burning TNT minecart
+                // primes instead of dropping, which is vanilla's own rule and not a break.
+                check(
+                        tntCart.hurtServer(
+                                level, level.damageSources().playerAttack(player), 10.0F),
+                        "The hit must break the TNT minecart");
+                checkCount(player, Items.TNT_MINECART, 1, "a TNT minecart a player broke");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), null) == 0,
+                        "Nothing of a vehicle a player broke may stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A vehicle that breaks without a player cause (lava here, a fire or a mob in play) keeps its
+    /// item and contents in the world.
+    public static void vehicleBrokenWithoutAPlayerStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcVehicleLava", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                MinecartChest cart = helper.spawn(EntityTypes.CHEST_MINECART, BLOCK_POS);
+                cart.setItem(0, new ItemStack(Items.EMERALD, 3));
+
+                check(
+                        cart.hurtServer(level, level.damageSources().lava(), 100.0F),
+                        "Lava must break the chest minecart");
+
+                check(cart.isRemoved(), "The lava must remove the chest minecart");
+                checkCount(player, Items.CHEST_MINECART, 0, "a minecart lava broke");
+                checkCount(player, Items.EMERALD, 0, "the contents of a minecart lava broke");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.CHEST_MINECART) == 1,
+                        "The lava-broken minecart's item must stay in the world");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.EMERALD) == 3,
+                        "The lava-broken minecart's contents must stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A creative player's punch discards a vehicle, as it always did; the contents a chest boat
+    /// drops on the way out stay in the world.
+    public static void creativeBreakOfVehicleStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture =
+                GameTestPlayer.join(helper, "DcVehicleCreative")
+                        .markLoaded()
+                        .gameMode(GameType.CREATIVE)
+                        .moveTo(helper, FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                player.getInventory().clearContent();
+                ChestBoat chestBoat = helper.spawn(EntityTypes.OAK_CHEST_BOAT, BLOCK_POS);
+                chestBoat.setItem(0, new ItemStack(Items.EMERALD, 3));
+
+                player.attack(chestBoat);
+
+                check(chestBoat.isRemoved(), "A creative punch must discard the chest boat");
+                checkCount(player, Items.OAK_CHEST_BOAT, 0, "a creative player");
+                checkCount(player, Items.EMERALD, 0, "the contents of a creative break");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.EMERALD) == 3,
+                        "The chest boat's contents must stay in the world for a creative break");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A policy that governs the player but does not deliver (a match, or Telekinesis switched off)
+    /// keeps a broken vehicle where the game dropped it.
+    public static void vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(
+            GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcVehicleOff", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), false);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                MinecartChest cart = helper.spawn(EntityTypes.CHEST_MINECART, BLOCK_POS);
+                cart.setItem(0, new ItemStack(Items.EMERALD, 3));
+
+                breakVehicle(cart, player);
+
+                check(cart.isRemoved(), "The punches must break the chest minecart");
+                checkCount(player, Items.CHEST_MINECART, 0, "a player a policy does not deliver to");
+                checkCount(player, Items.EMERALD, 0, "a player a policy does not deliver to");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.CHEST_MINECART) == 1,
+                        "The broken minecart's item must stay in the world");
+                check(
+                        itemsNear(level, helper.absolutePos(BLOCK_POS), Items.EMERALD) == 3,
+                        "The broken minecart's contents must stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
+    /// A vehicle breaks once its accumulated damage passes 40, and a punch deals a fifth of its
+    /// damage while the attack cooldown runs, so keep punching rather than counting hits.
+    private static void breakVehicle(VehicleEntity vehicle, ServerPlayer player) {
+        player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.DIAMOND_SWORD));
+        for (int punch = 0; punch < 40 && !vehicle.isRemoved(); punch++) {
+            player.attack(vehicle);
+        }
+        check(vehicle.isRemoved(), "The player's punches must break the vehicle");
+    }
+
     /// Two punches in one tick. The first only shakes the stand, because `ArmorStand.hurtServer`
     /// refuses to break one again within five ticks of the last hit unless the damage type always
     /// kills it; the second breaks it and drops the stand and its equipment.
@@ -664,7 +860,7 @@ public final class DropCaptureGameTests {
         Runnable cleanup =
                 () -> {
                     DropPolicies.unregister(policy);
-                    discardItems(end, foot);
+                    discardItems(end, roomAt(foot));
                     end.setChunkForced(room.x(), room.z(), false);
                     fixture.close();
                 };
@@ -774,6 +970,16 @@ public final class DropCaptureGameTests {
         ((ChestBlockEntity) level.getBlockEntity(pos)).setItem(0, new ItemStack(Items.EMERALD, 64));
     }
 
+    private static AABB roomAt(BlockPos foot) {
+        return new AABB(
+                foot.getX() - 6.0D,
+                foot.getY() - 1.0D,
+                foot.getZ() - 6.0D,
+                foot.getX() + 7.0D,
+                foot.getY() + 7.0D,
+                foot.getZ() + 7.0D);
+    }
+
     private static void clearRoom(ServerLevel level, BlockPos foot) {
         for (BlockPos pos : BlockPos.betweenClosed(foot.offset(-6, -1, -6), foot.offset(6, 6, 6))) {
             boolean shell =
@@ -788,9 +994,11 @@ public final class DropCaptureGameTests {
         }
     }
 
-    private static void discardItems(ServerLevel level, BlockPos pos) {
-        level.getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(8.0D))
-                .forEach(ItemEntity::discard);
+    /// Items inside the area only: the server lays tests out 8 to a row, five blocks apart
+    /// (GameTestServer.java:325, StructureGridSpawner.java:17-18), so a radius that reaches past
+    /// the test's own bounds can delete a neighbour's drops.
+    private static void discardItems(ServerLevel level, AABB area) {
+        level.getEntitiesOfClass(ItemEntity.class, area).forEach(ItemEntity::discard);
     }
 
     private static int leafDrops(ServerPlayer player) {

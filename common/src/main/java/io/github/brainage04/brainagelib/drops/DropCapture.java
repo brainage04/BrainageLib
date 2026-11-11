@@ -20,11 +20,12 @@ import org.jspecify.annotations.Nullable;
  * {@link DropPolicies} deliver to them.
  *
  * <p>A scope covers one player block break, one mob's death loot credited to a player, one hanging
- * decoration or armour stand a player breaks, the block drops of one explosion a player caused, or
- * a decaying leaf of a tree a player felled ({@link LeafOwners}). Scopes nest; the innermost one
- * decides. A mob death or explosion without a player cause opens no scope, so inside a block break
- * its drops still go to the breaker. A player's own death drops open a scope for nobody (a {@code
- * null} player), which keeps any outer scope from handing that inventory to someone else.
+ * decoration or armour stand a player breaks, one vehicle a player breaks with its contents, the
+ * block drops of one explosion a player caused, or a decaying leaf of a tree a player felled
+ * ({@link LeafOwners}). Scopes nest; the innermost one decides. A mob death or explosion without a
+ * player cause opens no scope, so inside a block break its drops still go to the breaker. A
+ * player's own death drops open a scope for nobody (a {@code null} player), which keeps any outer
+ * scope from handing that inventory to someone else.
  *
  * <p>What fits goes into the inventory; the rest is moved to the player's feet. A stack the
  * governing policy refuses ({@link DropPolicy#accepts}) stays where the game spawned it. Experience
