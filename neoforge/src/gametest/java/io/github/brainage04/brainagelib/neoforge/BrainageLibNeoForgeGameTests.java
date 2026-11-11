@@ -85,5 +85,57 @@ public final class BrainageLibNeoForgeGameTests {
                 Identifier.fromNamespaceAndPath(
                         BrainageLib.MOD_ID, "bed_click_credits_the_clicker"),
                 () -> DropCaptureGameTests::bedClickCreditsTheClicker);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "armor_stand_broken_by_player_is_captured"),
+                () -> DropCaptureGameTests::armorStandBrokenByPlayerIsCaptured);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "armor_stand_broken_by_a_blast_stays_in_the_world"),
+                () -> DropCaptureGameTests::armorStandBrokenByABlastStaysInTheWorld);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "armor_stand_broken_by_a_players_blast_is_captured"),
+                () -> DropCaptureGameTests::armorStandBrokenByAPlayersBlastIsCaptured);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "item_frames_broken_by_player_are_captured"),
+                () -> DropCaptureGameTests::itemFramesBrokenByPlayerAreCaptured);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "cushion_broken_by_player_is_captured"),
+                () -> DropCaptureGameTests::cushionBrokenByPlayerIsCaptured);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "painting_broken_by_player_is_captured"),
+                () -> DropCaptureGameTests::paintingBrokenByPlayerIsCaptured);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID,
+                        "decoration_broken_without_a_policy_stays_in_the_world"),
+                () -> DropCaptureGameTests::decorationBrokenWithoutAPolicyStaysInTheWorld);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "match_policy_governs_decoration_breaks"),
+                () -> DropCaptureGameTests::matchPolicyGovernsDecorationBreaks);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID,
+                        "kill_credited_without_a_player_hit_goes_to_the_killer"),
+                () -> DropCaptureGameTests::killCreditedWithoutAPlayerHitGoesToTheKiller);
+        event.register(
+                BuiltInRegistries.TEST_FUNCTION.key(),
+                Identifier.fromNamespaceAndPath(
+                        BrainageLib.MOD_ID, "kill_no_player_is_credited_with_stays_in_the_world"),
+                () -> DropCaptureGameTests::killNoPlayerIsCreditedWithStaysInTheWorld);
     }
 }

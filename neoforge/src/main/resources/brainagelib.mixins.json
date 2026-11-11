@@ -4,10 +4,13 @@
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
 		"AbstractBedBlockMixin",
+		"ArmorStandMixin",
+		"BlockAttachedEntityMixin",
 		"BlockMixin",
 		"EnderDragonMixin",
 		"ExperienceOrbAccessor",
 		"ExperienceOrbMixin",
+		"ItemFrameMixin",
 		"LivingEntityMixin",
 		"RespawnAnchorBlockMixin",
 		"ServerExplosionMixin",

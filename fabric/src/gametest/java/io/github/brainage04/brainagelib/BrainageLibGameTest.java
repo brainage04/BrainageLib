@@ -73,4 +73,54 @@ public final class BrainageLibGameTest {
     public void bedClickCreditsTheClicker(GameTestHelper context) {
         DropCaptureGameTests.bedClickCreditsTheClicker(context);
     }
+
+    @GameTest
+    public void armorStandBrokenByPlayerIsCaptured(GameTestHelper context) {
+        DropCaptureGameTests.armorStandBrokenByPlayerIsCaptured(context);
+    }
+
+    @GameTest
+    public void armorStandBrokenByABlastStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.armorStandBrokenByABlastStaysInTheWorld(context);
+    }
+
+    @GameTest
+    public void armorStandBrokenByAPlayersBlastIsCaptured(GameTestHelper context) {
+        DropCaptureGameTests.armorStandBrokenByAPlayersBlastIsCaptured(context);
+    }
+
+    @GameTest
+    public void itemFramesBrokenByPlayerAreCaptured(GameTestHelper context) {
+        DropCaptureGameTests.itemFramesBrokenByPlayerAreCaptured(context);
+    }
+
+    @GameTest
+    public void cushionBrokenByPlayerIsCaptured(GameTestHelper context) {
+        DropCaptureGameTests.cushionBrokenByPlayerIsCaptured(context);
+    }
+
+    @GameTest
+    public void paintingBrokenByPlayerIsCaptured(GameTestHelper context) {
+        DropCaptureGameTests.paintingBrokenByPlayerIsCaptured(context);
+    }
+
+    @GameTest
+    public void decorationBrokenWithoutAPolicyStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.decorationBrokenWithoutAPolicyStaysInTheWorld(context);
+    }
+
+    @GameTest
+    public void matchPolicyGovernsDecorationBreaks(GameTestHelper context) {
+        DropCaptureGameTests.matchPolicyGovernsDecorationBreaks(context);
+    }
+
+    @GameTest
+    public void killCreditedWithoutAPlayerHitGoesToTheKiller(GameTestHelper context) {
+        DropCaptureGameTests.killCreditedWithoutAPlayerHitGoesToTheKiller(context);
+    }
+
+    @GameTest
+    public void killNoPlayerIsCreditedWithStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.killNoPlayerIsCreditedWithStaysInTheWorld(context);
+    }
 }
