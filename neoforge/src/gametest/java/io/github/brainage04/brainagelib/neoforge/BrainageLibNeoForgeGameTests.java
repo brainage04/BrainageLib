@@ -3,16 +3,14 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
-
+import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.RegisterEvent;
-
-import java.util.List;
-import java.util.function.Consumer;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
 public final class BrainageLibNeoForgeGameTests {
@@ -91,6 +89,9 @@ public final class BrainageLibNeoForgeGameTests {
                             "kill_no_player_is_credited_with_stays_in_the_world",
                             DropCaptureGameTests::killNoPlayerIsCreditedWithStaysInTheWorld),
                     new TestFunction(
+                            "kill_credited_to_a_mob_stays_in_the_world",
+                            DropCaptureGameTests::killCreditedToAMobStaysInTheWorld),
+                    new TestFunction(
                             "vehicles_broken_by_player_are_captured",
                             DropCaptureGameTests::vehiclesBrokenByPlayerAreCaptured),
                     new TestFunction(
@@ -104,7 +105,8 @@ public final class BrainageLibNeoForgeGameTests {
                             DropCaptureGameTests::creativeBreakOfVehicleStaysInTheWorld),
                     new TestFunction(
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
-                            DropCaptureGameTests::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
+                            DropCaptureGameTests
+                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
 
     private BrainageLibNeoForgeGameTests() {}
 

@@ -4,7 +4,6 @@ import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.command.ServerModsCommand;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
-
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;

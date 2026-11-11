@@ -615,6 +615,39 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
+    /// A death the game credits to a mob is nobody's: the loot stays in the world, as it does for a
+    /// kill nobody is credited with.
+    public static void killCreditedToAMobStaysInTheWorld(GameTestHelper helper) {
+        try (GameTestPlayer fixture = player(helper, "DcMobCredit", FIRST_POS)) {
+            ServerPlayer player = fixture.player();
+            ServerLevel level = helper.getLevel();
+            TestPolicy policy = new TestPolicy(Set.of(player.getUUID()), true);
+            DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
+            try {
+                Husk attacker = helper.spawn(EntityTypes.HUSK, SECOND_POS);
+                Husk victim = gearedHusk(helper, MOB_POS);
+                victim.setHealth(20.0F);
+
+                victim.hurtServer(level, level.damageSources().mobAttack(attacker), 1.0F);
+                check(
+                        victim.getKillCredit() == attacker,
+                        "The game must credit the attacking husk");
+
+                victim.hurtServer(level, level.damageSources().lava(), 100.0F);
+
+                check(victim.isDeadOrDying(), "The lava must kill the victim");
+                checkCount(player, Items.IRON_HELMET, 0, "a kill the game credits to a mob");
+                check(
+                        itemsNear(level, helper.absolutePos(MOB_POS).above(), Items.IRON_HELMET)
+                                == 1,
+                        "A mob's kill loot must stay in the world");
+            } finally {
+                DropPolicies.unregister(policy);
+            }
+        }
+        helper.succeed();
+    }
+
     /// A vehicle a player breaks hands over its own item, and a chest boat, chest minecart or
     /// hopper minecart its contents with it, like any other container.
     public static void vehiclesBrokenByPlayerAreCaptured(GameTestHelper helper) {
@@ -647,8 +680,8 @@ public final class DropCaptureGameTests {
         helper.succeed();
     }
 
-    /// The same rule for every minecart. A furnace minecart has no contents to hand over, and a
-    /// TNT minecart drops its item for a plain punch, because only fire and blasts prime it.
+    /// The same rule for every minecart. A furnace minecart has no contents to hand over, and a TNT
+    /// minecart drops its item for a plain punch, because only fire and blasts prime it.
     public static void minecartsBrokenByPlayerAreCaptured(GameTestHelper helper) {
         try (GameTestPlayer fixture = player(helper, "DcMinecarts", FIRST_POS)) {
             ServerPlayer player = fixture.player();
@@ -778,7 +811,8 @@ public final class DropCaptureGameTests {
                 breakVehicle(cart, player);
 
                 check(cart.isRemoved(), "The punches must break the chest minecart");
-                checkCount(player, Items.CHEST_MINECART, 0, "a player a policy does not deliver to");
+                checkCount(
+                        player, Items.CHEST_MINECART, 0, "a player a policy does not deliver to");
                 checkCount(player, Items.EMERALD, 0, "a player a policy does not deliver to");
                 check(
                         itemsNear(level, helper.absolutePos(BLOCK_POS), Items.CHEST_MINECART) == 1,

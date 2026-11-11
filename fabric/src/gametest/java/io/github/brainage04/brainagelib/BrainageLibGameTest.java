@@ -125,6 +125,11 @@ public final class BrainageLibGameTest {
     }
 
     @GameTest
+    public void killCreditedToAMobStaysInTheWorld(GameTestHelper context) {
+        DropCaptureGameTests.killCreditedToAMobStaysInTheWorld(context);
+    }
+
+    @GameTest
     public void vehiclesBrokenByPlayerAreCaptured(GameTestHelper context) {
         DropCaptureGameTests.vehiclesBrokenByPlayerAreCaptured(context);
     }

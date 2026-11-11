@@ -21,7 +21,8 @@ public abstract class VehicleEntityMixin {
     @WrapMethod(method = "hurtServer")
     private boolean brainagelib$captureBrokenVehicle(
             ServerLevel level, DamageSource source, float damage, Operation<Boolean> original) {
-        if (!(source.getEntity() instanceof ServerPlayer player) || player.getAbilities().instabuild) {
+        if (!(source.getEntity() instanceof ServerPlayer player)
+                || player.getAbilities().instabuild) {
             return original.call(level, source, damage);
         }
         DropCapture.begin(player);
