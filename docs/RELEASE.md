@@ -14,3 +14,7 @@ GitHub Actions checks out tag pushes in a way that can obscure annotated tag con
 
 If Maven Central credentials and signing secrets are configured, the workflow uploads both loader coordinates before finalizing one Central deployment. If `MODRINTH_TOKEN` is configured, it publishes separate Fabric and NeoForge versions to the same Modrinth project. If both `CURSEFORGE_TOKEN` and `CURSEFORGE_PROJECT_ID` are configured, it publishes both loader JARs to CurseForge. The GitHub Release always attaches both loader JARs.
 All destinations use the same tag notes. Missing third-party credentials skip only that destination; the GitHub Release still proceeds.
+
+`CHANGELOG.md` holds each version's notes. Use that version's section as the tag message.
+
+To publish to Maven Central by hand, run `./gradlew publishAllToMavenCentral`. It uploads `brainagelib` and `brainagelib-neoforge` and then finalizes one deployment. `brainagelib-gametest` never goes to Maven Central.

@@ -2,7 +2,7 @@
 
 ## Dependency
 
-BrainageLib is not on Maven Central yet. Consumers build it from a sibling checkout; the coordinates are `io.github.brainage04:brainagelib:2.0.0` for Fabric and `io.github.brainage04:brainagelib-neoforge:2.0.0` for NeoForge.
+BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainagelib` for Fabric and `io.github.brainage04:brainagelib-neoforge` for NeoForge. The test-only `io.github.brainage04:brainagelib-gametest` is not on Maven Central, and consumers build it from a sibling checkout (see [GameTest support](#gametest-support)).
 
 ```groovy
 dependencies {
@@ -19,17 +19,28 @@ dependencies {
 }
 ```
 
-Declare the runtime requirement in `fabric.mod.json`:
+Declare the runtime requirement in `fabric.mod.json`, capped below the next major version:
 
 ```json
 {
   "depends": {
-    "brainagelib": ">=2.0.0"
+    "brainagelib": ">=2.0.0 <3.0.0"
   }
 }
 ```
 
-For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml`.
+For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml` with the same cap:
+
+```toml
+[[dependencies.examplemod]]
+modId="brainagelib"
+type="required"
+versionRange="[2.0.0,3.0.0)"
+ordering="AFTER"
+side="SERVER"
+```
+
+A major release may remove public API, as 2.0.0 did. With the cap, the loader refuses to start a mod next to a BrainageLib it was not built for, instead of the mod failing with `NoSuchMethodError` during play.
 
 For workspace development, MinecraftModConventions' `workspaceDependencies` component resolves BrainageLib from a sibling checkout's `build/local-repo` (written by `./gradlew --no-daemon publishAllPublicationsToLocalRepository` in `../BrainageLib`):
 
@@ -95,7 +106,9 @@ HelpPage.create(FEEDBACK, "example")
         .register(dispatcher);
 ```
 
-The first line defaults to `Player commands:`; `heading(...)` replaces it. `show(source)` prints the page wherever it is called and returns 1.
+The first line defaults to `Player commands:`, and `heading(...)` replaces it. `line(...)` throws `IllegalArgumentException` for a blank message, so a bad page fails when the mod registers it. `show(source)` prints the page wherever it is called and returns 1.
+
+Brigadier merges the page's `/example` root with the mod's own `/example` root. The root registered first keeps its `requires`, and the root registered last decides what `/example` alone runs. Put permission checks on the mod's subcommands, not on its `/example` root, so that they hold in either registration order.
 
 ## Saved files
 
@@ -145,9 +158,16 @@ public static boolean reload() {
 }
 ```
 
-`loadOrCreate()` replaces the value when the document loads and writes the default document when the file is missing; `reload()` only replaces the value, so a deleted file stays deleted. A file that failed to load is never overwritten: the value stays, `save()` returns false and the change applies for the session only. Add `.decoder(...)` for validation, normalisation or migration.
+`loadOrCreate()` replaces the value when the document loads and writes the default document when the file is missing. `reload()` only replaces the value, so a deleted file stays deleted. Add `.decoder(...)` for validation, normalisation or migration.
 
-Load problems, refused saves and write failures are logged by BrainageLib.
+Whenever the default becomes the value in effect (before the first load, and when `loadOrCreate()` finds the file missing), the value is a fresh copy of the default made with the Gson. Changing the value therefore never changes the default, and deleting the file and calling `loadOrCreate()` writes the original default again.
+
+`save()` writes nothing and returns false in two cases, and the change then applies for the session only:
+
+- before the first `loadOrCreate()` or `reload()`, so an early save cannot replace the operator's file with the default;
+- after a load that failed, so a file the mod could not read is never overwritten.
+
+BrainageLib logs load problems, refused saves and write failures.
 
 ## Confirmation windows
 
