@@ -18,7 +18,8 @@ import org.slf4j.Logger;
  * <p>The value is the whole document: a missing file is created by saving the default value, so a
  * config is a type that Gson reads and writes as the file's content. Whenever the default becomes
  * the value in effect, the value is a fresh copy of it made by writing and reading it with the
- * Gson, so changing the value never changes the default. Instances are thread-safe.
+ * Gson, so changing the value never changes the default. Saved files end with a line break.
+ * Instances are thread-safe.
  */
 public final class ConfigFile<T> {
     private final JsonFile<T> file;
@@ -33,7 +34,7 @@ public final class ConfigFile<T> {
                 JsonFile.builder(builder.path, builder.gson, builder.type);
         if (builder.decoder != null) fileBuilder.decoder(builder.decoder);
         if (builder.description != null) fileBuilder.description(builder.description);
-        this.file = fileBuilder.logger(builder.logger).build();
+        this.file = fileBuilder.logger(builder.logger).trailingNewline().build();
         this.gson = builder.gson;
         this.type = builder.type;
         this.defaultValue = builder.defaultValue;

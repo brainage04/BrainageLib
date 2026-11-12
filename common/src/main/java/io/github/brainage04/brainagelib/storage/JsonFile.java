@@ -36,6 +36,7 @@ public final class JsonFile<T> {
     private final FailedLoadPolicy failedLoadPolicy;
     private final String description;
     private final Logger logger;
+    private final boolean trailingNewline;
     private LoadResult<T> lastLoad;
 
     private JsonFile(Builder<T> builder) {
@@ -47,6 +48,7 @@ public final class JsonFile<T> {
         this.description =
                 builder.description != null ? builder.description : path.getFileName().toString();
         this.logger = builder.logger;
+        this.trailingNewline = builder.trailingNewline;
     }
 
     public static <T> Builder<T> builder(Path path, Gson gson, Class<T> type) {
@@ -143,7 +145,12 @@ public final class JsonFile<T> {
             return SaveResult.KEPT_ORIGINAL;
         }
         try {
-            AtomicFiles.writeText(path, writer -> gson.toJson(value, type, writer));
+            AtomicFiles.writeText(
+                    path,
+                    writer -> {
+                        gson.toJson(value, type, writer);
+                        if (trailingNewline) writer.write('\n');
+                    });
             return SaveResult.SAVED;
         } catch (IOException | RuntimeException exception) {
             logger.error("Failed to save {} to {}", description, path, exception);
@@ -226,6 +233,7 @@ public final class JsonFile<T> {
         private FailedLoadPolicy failedLoadPolicy = FailedLoadPolicy.KEEP_ORIGINAL;
         private String description;
         private Logger logger = BrainageLib.LOGGER;
+        private boolean trailingNewline;
 
         private Builder(Path path, Gson gson, Type type) {
             this.path = Objects.requireNonNull(path, "path");
@@ -255,6 +263,12 @@ public final class JsonFile<T> {
 
         public Builder<T> logger(Logger logger) {
             this.logger = Objects.requireNonNull(logger, "logger");
+            return this;
+        }
+
+        /** Ends every saved document with a line break. */
+        Builder<T> trailingNewline() {
+            this.trailingNewline = true;
             return this;
         }
 

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ConfigFileTest {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final String DEFAULT_DOCUMENT = "{\n  \"version\": 1,\n  \"enabled\": true\n}\n";
     private final Settings defaults = new Settings(1, true);
     @TempDir Path directory;
 
@@ -39,9 +40,7 @@ class ConfigFileTest {
         ConfigFile<Settings> file = file();
         assertInstanceOf(JsonFile.LoadResult.Missing.class, file.loadOrCreate());
         assertSettings(1, true, file.value());
-        assertEquals(
-                "{\n  \"version\": 1,\n  \"enabled\": true\n}",
-                Files.readString(directory.resolve("nested/config.json")));
+        assertEquals(DEFAULT_DOCUMENT, Files.readString(directory.resolve("nested/config.json")));
     }
 
     @Test
@@ -82,6 +81,10 @@ class ConfigFileTest {
         file.loadOrCreate();
         file.value().enabled = false;
         assertTrue(file.save());
+        assertEquals(
+                "{\n  \"version\": 1,\n  \"enabled\": false\n}\n",
+                Files.readString(directory.resolve("nested/config.json")),
+                "A saved file ends with a line break");
         assertTrue(file.reload());
         assertSettings(1, false, file.value());
     }
@@ -95,7 +98,7 @@ class ConfigFileTest {
         assertTrue(file.save());
         Files.delete(path);
         assertInstanceOf(JsonFile.LoadResult.Missing.class, file.loadOrCreate());
-        assertEquals("{\n  \"version\": 1,\n  \"enabled\": true\n}", Files.readString(path));
+        assertEquals(DEFAULT_DOCUMENT, Files.readString(path));
         assertSettings(1, true, file.value());
         assertSettings(1, true, defaults);
     }
@@ -105,9 +108,7 @@ class ConfigFileTest {
         ConfigFile<Settings> file = file();
         file.value().enabled = false;
         assertInstanceOf(JsonFile.LoadResult.Missing.class, file.loadOrCreate());
-        assertEquals(
-                "{\n  \"version\": 1,\n  \"enabled\": true\n}",
-                Files.readString(directory.resolve("nested/config.json")));
+        assertEquals(DEFAULT_DOCUMENT, Files.readString(directory.resolve("nested/config.json")));
         assertSettings(1, true, defaults);
     }
 
