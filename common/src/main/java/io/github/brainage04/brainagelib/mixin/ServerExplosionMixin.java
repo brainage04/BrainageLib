@@ -13,7 +13,8 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(ServerExplosion.class)
 public abstract class ServerExplosionMixin {
     /// Only the block step: mobs the explosion kills follow the mob rule, and the entities it
-    /// breaks (item frames, armor stands, minecarts) drop where they were.
+    /// breaks (item frames, armor stands, vehicles) follow their own captures, which take the
+    /// player the blast's damage source names.
     @WrapOperation(
             method = "explode",
             at =
