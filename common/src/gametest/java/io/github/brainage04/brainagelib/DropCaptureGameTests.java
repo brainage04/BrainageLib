@@ -902,6 +902,14 @@ public final class DropCaptureGameTests {
         try {
             DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, policy);
             end.setChunkForced(room.x(), room.z(), true);
+            // The GameTest server runs its ticks back to back (GameTestServer.java:296-298), so the
+            // wait below can use up its ticks in under a second while the chunks around the room
+            // still generate on worker threads (failed so in CI). Entity ticking needs the room's
+            // chunk and the two rings around it at full status (ChunkMap.java:361); getChunk
+            // blocks until each one is generated (ServerChunkCache.java:163).
+            for (int dx = -2; dx <= 2; dx++) {
+                for (int dz = -2; dz <= 2; dz++) end.getChunk(room.x() + dx, room.z() + dz);
+            }
             clearRoom(end, foot);
             place.accept(end, foot);
             clicked = end.getBlockState(foot).getBlock();
