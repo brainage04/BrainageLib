@@ -5,7 +5,7 @@
 3. Push that commit.
 4. Create a matching annotated git tag in the form `vX.Y.Z` so the tag message becomes the GitHub release notes.
 5. For a short release note, run `git tag -a v1.0.1 -m "Summarise the release here"`.
-6. For longer release notes, put them in a file and run `git tag -a v1.0.1 -F RELEASE_NOTES.md`.
+6. For longer release notes, put them in a file and run `git tag -a v1.0.1 --cleanup=verbatim -F RELEASE_NOTES.md`. Without `--cleanup=verbatim`, git deletes every line that starts with `#`, so Markdown headings would vanish from the notes.
 7. Push the tag with `git push origin v1.0.1`.
 
 The release workflow reads the annotated tag message and uses it as the GitHub release body.
@@ -15,6 +15,6 @@ GitHub Actions checks out tag pushes in a way that can obscure annotated tag con
 If Maven Central credentials and signing secrets are configured, the workflow uploads both loader coordinates before finalizing one Central deployment. If `MODRINTH_TOKEN` is configured, it publishes separate Fabric and NeoForge versions to the same Modrinth project. If both `CURSEFORGE_TOKEN` and `CURSEFORGE_PROJECT_ID` are configured, it publishes both loader JARs to CurseForge. The GitHub Release always attaches both loader JARs.
 All destinations use the same tag notes. Missing third-party credentials skip only that destination; the GitHub Release still proceeds.
 
-`CHANGELOG.md` holds each version's notes. Use that version's section as the tag message.
+`CHANGELOG.md` holds each version's notes. Use that version's section as the tag message, tagged with `--cleanup=verbatim` as in step 6.
 
-To publish to Maven Central by hand, run `./gradlew publishAllToMavenCentral`. It uploads `brainagelib` and `brainagelib-neoforge` and then finalizes one deployment. `brainagelib-gametest` never goes to Maven Central.
+To publish to Maven Central by hand, run `./gradlew publishAllToMavenCentral`. It uploads `brainagelib` and `brainagelib-neoforge` and then finalizes one deployment. `brainagelib-gametest` never goes to Maven Central. `./gradlew :neoforge:publishToMavenCentral` on its own uploads the NeoForge artifact but does not finalize a deployment, so nothing from that run reaches Maven Central. Use `publishAllToMavenCentral` to republish either loader.

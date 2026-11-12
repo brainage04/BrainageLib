@@ -37,8 +37,10 @@ modId="brainagelib"
 type="required"
 versionRange="[2.0.0,3.0.0)"
 ordering="AFTER"
-side="SERVER"
+side="BOTH"
 ```
+
+Use `side="BOTH"`: a client that installs a mod requiring BrainageLib installs BrainageLib too (see the README's Compatibility section), so NeoForge also checks the dependency on a client and shows its missing-dependency screen there.
 
 A major release may remove public API, as 2.0.0 did. With the cap, the loader refuses to start a mod next to a BrainageLib it was not built for, instead of the mod failing with `NoSuchMethodError` during play.
 
