@@ -1,18 +1,7 @@
 import io.github.brainage04.minecraftmodconventions.gradle.multiloader.MinecraftVersionRange
 
 plugins {
-	id 'io.github.brainage04.maven-central-publishing' version "${minecraftmodconventions_version}"
-}
-
-mavenCentralPublishing {
-	repository.set('brainage04/BrainageLib')
-	publicationName.set(rootProject.mod_name)
-	description.set('Shared server-side command feedback and mod discovery for brainage04 Minecraft mods.')
-	localRepository.set(rootProject.layout.buildDirectory.dir('local-repo'))
-}
-
-tasks.named('publishToMavenCentral') {
-	dependsOn ':neoforge:publishMavenJavaPublicationToCentralRepository'
+	id 'maven-publish'
 }
 
 tasks.register('javadocJar', Jar) {
@@ -63,9 +52,10 @@ tasks.named('assemble') {
 	dependsOn testSupportJar
 }
 
-// Only the GameTest fixtures are published from here. The `brainagelib` artifact is the Fabric jar, published by
-// :fabric (and `brainagelib-neoforge` by :neoforge); a second `brainagelib` publication here raced the Fabric one
-// for the same files under parallel builds.
+// Only the GameTest fixtures are published from here, and only to build/local-repo for sibling builds: the
+// test-only brainagelib-gametest never goes to Maven Central. The `brainagelib` artifact is the Fabric jar,
+// published by :fabric (and `brainagelib-neoforge` by :neoforge); a second `brainagelib` publication here raced
+// the Fabric one for the same files under parallel builds.
 publishing {
 	publications {
 		create('gameTestSupport', MavenPublication) {
@@ -73,6 +63,12 @@ publishing {
 			artifact testSupportJar
 			artifact testSupportSourcesJar
 			artifact tasks.named('javadocJar')
+		}
+	}
+	repositories {
+		maven {
+			name = 'local'
+			url = rootProject.layout.buildDirectory.dir('local-repo')
 		}
 	}
 }

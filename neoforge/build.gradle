@@ -9,6 +9,14 @@ mavenCentralPublishing {
 	localRepository.set(rootProject.layout.buildDirectory.dir('local-repo'))
 }
 
+// :fabric:publishToMavenCentral uploads this publication too and then finalizes one Central deployment for both
+// loaders. This project's finalizer would move whatever is staged at that moment into a second deployment
+// (MinecraftModConventions 3.1.2, FinalizeMavenCentralDeploymentTask), so a plain `publishToMavenCentral` skips it;
+// the upload it depends on still runs.
+tasks.named('publishToMavenCentral') {
+	enabled = false
+}
+
 tasks.register('javadocJar', Jar) {
 	archiveClassifier = 'javadoc'
 	from rootProject.file('README.md')
