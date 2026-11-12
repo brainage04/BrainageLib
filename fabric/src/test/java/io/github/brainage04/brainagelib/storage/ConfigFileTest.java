@@ -16,12 +16,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 class ConfigFileTest {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Settings DEFAULTS = new Settings(1, true);
+    private final Settings defaults = new Settings(1, true);
     @TempDir Path directory;
 
     private ConfigFile<Settings> file() {
         return ConfigFile.builder(
-                        directory.resolve("nested/config.json"), GSON, Settings.class, DEFAULTS)
+                        directory.resolve("nested/config.json"), GSON, Settings.class, defaults)
                 .decoder(
                         document -> {
                             Settings settings = GSON.fromJson(document, Settings.class);
@@ -84,6 +84,43 @@ class ConfigFileTest {
         assertTrue(file.save());
         assertTrue(file.reload());
         assertSettings(1, false, file.value());
+    }
+
+    @Test
+    void editingTheValueAfterAMissingLoadKeepsTheDefault() throws IOException {
+        Path path = directory.resolve("nested/config.json");
+        ConfigFile<Settings> file = file();
+        file.loadOrCreate();
+        file.value().enabled = false;
+        assertTrue(file.save());
+        Files.delete(path);
+        assertInstanceOf(JsonFile.LoadResult.Missing.class, file.loadOrCreate());
+        assertEquals("{\n  \"version\": 1,\n  \"enabled\": true\n}", Files.readString(path));
+        assertSettings(1, true, file.value());
+        assertSettings(1, true, defaults);
+    }
+
+    @Test
+    void editingTheValueBeforeTheFirstLoadKeepsTheDefault() throws IOException {
+        ConfigFile<Settings> file = file();
+        file.value().enabled = false;
+        assertInstanceOf(JsonFile.LoadResult.Missing.class, file.loadOrCreate());
+        assertEquals(
+                "{\n  \"version\": 1,\n  \"enabled\": true\n}",
+                Files.readString(directory.resolve("nested/config.json")));
+        assertSettings(1, true, defaults);
+    }
+
+    @Test
+    void saveBeforeTheFirstLoadKeepsAnExistingFile() throws IOException {
+        write("{\"version\":1,\"enabled\":false}");
+        ConfigFile<Settings> file = file();
+        assertFalse(file.save(), "A file that was never loaded must not be replaced");
+        assertEquals(
+                "{\"version\":1,\"enabled\":false}",
+                Files.readString(directory.resolve("nested/config.json")));
+        file.loadOrCreate();
+        assertTrue(file.save(), "Saving works once the file has loaded");
     }
 
     private void write(String document) throws IOException {

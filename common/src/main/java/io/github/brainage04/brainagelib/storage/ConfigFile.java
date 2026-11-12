@@ -12,14 +12,20 @@ import org.slf4j.Logger;
  * <p>{@link #loadOrCreate} replaces the value when the document loads and writes the default
  * document when the file is missing; {@link #reload} replaces it only when the document loads, so a
  * deleted file stays deleted. A file that failed to load keeps the value and is never overwritten
- * (see {@link JsonFile}); changes then apply for the session only.
+ * (see {@link JsonFile}); changes then apply for the session only. {@link #save} writes nothing
+ * before the first load, so it cannot replace an existing file with the default.
  *
  * <p>The value is the whole document: a missing file is created by saving the default value, so a
- * config is a type that Gson reads and writes as the file's content. Instances are thread-safe.
+ * config is a type that Gson reads and writes as the file's content. Whenever the default becomes
+ * the value in effect, the value is a fresh copy of it made by writing and reading it with the
+ * Gson, so changing the value never changes the default. Instances are thread-safe.
  */
 public final class ConfigFile<T> {
     private final JsonFile<T> file;
+    private final Gson gson;
+    private final Class<T> type;
     private final T defaultValue;
+    private final Logger logger;
     private T value;
 
     private ConfigFile(Builder<T> builder) {
@@ -28,22 +34,25 @@ public final class ConfigFile<T> {
         if (builder.decoder != null) fileBuilder.decoder(builder.decoder);
         if (builder.description != null) fileBuilder.description(builder.description);
         this.file = fileBuilder.logger(builder.logger).build();
+        this.gson = builder.gson;
+        this.type = builder.type;
         this.defaultValue = builder.defaultValue;
-        this.value = builder.defaultValue;
+        this.logger = builder.logger;
+        this.value = copyOfDefault();
     }
 
     /**
      * @param path the file to read and write
      * @param gson the Gson used for the document
      * @param type the value type, which is the whole document
-     * @param defaultValue the value in effect before a load and the document a missing file is
-     *     created with
+     * @param defaultValue the document a missing file is created with; a copy of it is the value in
+     *     effect before a load
      */
     public static <T> Builder<T> builder(Path path, Gson gson, Class<T> type, T defaultValue) {
         return new Builder<>(path, gson, type, defaultValue);
     }
 
-    /** The value in effect: the loaded one, or the default. */
+    /** The value in effect: the loaded one, or a copy of the default. */
     public synchronized T value() {
         return value;
     }
@@ -57,8 +66,8 @@ public final class ConfigFile<T> {
         switch (result) {
             case JsonFile.LoadResult.Loaded<T>(T loaded) -> value = loaded;
             case JsonFile.LoadResult.Missing<T> missing -> {
-                value = defaultValue;
-                file.save(defaultValue);
+                value = copyOfDefault();
+                file.save(value);
             }
             default -> {}
         }
@@ -74,9 +83,22 @@ public final class ConfigFile<T> {
         return false;
     }
 
-    /** Writes the value; the result is {@link JsonFile#save}'s. */
+    /**
+     * Writes the value; the result is {@link JsonFile#save}'s. Before the first {@link
+     * #loadOrCreate} or {@link #reload} it writes nothing and returns false.
+     */
     public synchronized boolean save() {
+        if (file.lastLoad() == null) {
+            logger.warn(
+                    "Not saving {} because it was never loaded; the file is kept unchanged",
+                    file.path());
+            return false;
+        }
         return file.save(value).saved();
+    }
+
+    private T copyOfDefault() {
+        return gson.fromJson(gson.toJsonTree(defaultValue, type), type);
     }
 
     public static final class Builder<T> {
