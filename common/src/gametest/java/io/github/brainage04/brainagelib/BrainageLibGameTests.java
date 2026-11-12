@@ -1,5 +1,6 @@
 package io.github.brainage04.brainagelib;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.brainage04.brainagelib.feedback.ModFeedback;
@@ -16,13 +17,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
 
 public final class BrainageLibGameTests {
@@ -201,6 +205,21 @@ public final class BrainageLibGameTests {
         context.assertTrue(
                 server.getPlayerList().getPlayer(mocked.getUUID()) == null,
                 "Closing a mocked player must remove it");
+        ServerLevel end = server.getLevel(Level.END);
+        context.assertTrue(end != null, "The test server must have an End");
+        ServerPlayer joinedInLevel;
+        try (GameTestPlayer inLevel =
+                GameTestPlayer.join(end, new GameProfile(UUID.randomUUID(), "LevelJoinTest"))) {
+            joinedInLevel = inLevel.player();
+            context.assertTrue(
+                    joinedInLevel.level() == end, "A player joined in a level must be in it");
+            context.assertTrue(
+                    server.getPlayerList().getPlayer(joinedInLevel.getUUID()) == joinedInLevel,
+                    "A player joined in a level joins the server");
+        }
+        context.assertTrue(
+                server.getPlayerList().getPlayer(joinedInLevel.getUUID()) == null,
+                "Closing a player joined in a level must remove it");
         context.succeed();
     }
 

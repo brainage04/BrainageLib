@@ -58,7 +58,14 @@ public final class GameTestPlayer implements AutoCloseable {
 
     /** Joins a player with the given profile, in the GameTest's level. */
     public static GameTestPlayer join(GameTestHelper helper, GameProfile profile) {
-        ServerLevel level = helper.getLevel();
+        return join(helper.getLevel(), profile);
+    }
+
+    /**
+     * Joins a player with the given profile in {@code level}, for tests without a {@link
+     * GameTestHelper}, such as a client GameTest that needs a second player on its server.
+     */
+    public static GameTestPlayer join(ServerLevel level, GameProfile profile) {
         MinecraftServer server = level.getServer();
         CommonListenerCookie cookie = CommonListenerCookie.createInitial(profile, false);
         ServerPlayer player =

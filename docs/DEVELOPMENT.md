@@ -160,7 +160,7 @@ public static boolean reload() {
 
 `loadOrCreate()` replaces the value when the document loads and writes the default document when the file is missing. `reload()` only replaces the value, so a deleted file stays deleted. Add `.decoder(...)` for validation, normalisation or migration.
 
-Whenever the default becomes the value in effect (before the first load, and when `loadOrCreate()` finds the file missing), the value is a fresh copy of the default made with the Gson. Changing the value therefore never changes the default, and deleting the file and calling `loadOrCreate()` writes the original default again.
+Whenever the default becomes the value in effect (before the first load, and when `loadOrCreate()` finds the file missing), the value is a fresh copy of the default made with the Gson. Changing the value therefore never changes the default, and deleting the file and calling `loadOrCreate()` writes the original default again. Saved files end with a line break.
 
 `save()` writes nothing and returns false in two cases, and the change then applies for the session only:
 
@@ -230,6 +230,7 @@ dependencies {
 Add both lines to the Fabric and the NeoForge project. `productionRuntimeMods` only feeds the production GameTest runs, not the release JAR.
 
 - `GameTestPlayer.join(helper, name)` joins a real player through `PlayerList.placeNewPlayer` with a server packet listener on an in-memory connection. `command("...")` runs a command through the chat-command packet, `messages()`/`messageTexts()`/`received(text)` return the system chat messages the client was sent, and `gameMode`, `markLoaded` and `moveTo` set the player up. Use it with try-with-resources: `close()` removes the player, disconnects the listener and releases the channel.
+- `GameTestPlayer.join(level, profile)` joins the same kind of player in a given `ServerLevel`, for tests without a `GameTestHelper`, such as a client GameTest that needs a second player.
 - `GameTestPlayer.mock(helper)` and `mock(helper, gameMode)` join a mocked player in creative mode with the name `test-mock-player`, the supported replacement for `GameTestHelper.makeMockServerPlayerInLevel()`; close it like any other fixture.
 - `CapturedCommandOutput` is a command source that keeps every message; `source(server)` gives a server command source that reports to it.
 
