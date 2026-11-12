@@ -39,13 +39,25 @@ public final class HelpPage {
         return this;
     }
 
-    /** Adds one command line; the message takes {@link String#formatted} arguments. */
+    /**
+     * Adds one command line; the message takes {@link String#formatted} arguments and must not be
+     * blank.
+     */
     public HelpPage line(String message, Object... arguments) {
-        lines.add(new Line(message, arguments.clone()));
+        String text = Objects.requireNonNull(message, "message");
+        if (text.isBlank()) throw new IllegalArgumentException("message must not be blank");
+        lines.add(new Line(text, arguments.clone()));
         return this;
     }
 
-    /** Registers {@code /command} and {@code /command help} to print this page. */
+    /**
+     * Registers {@code /command} and {@code /command help} to print this page.
+     *
+     * <p>Brigadier merges this root with the mod's own {@code /command} root: the root registered
+     * first keeps its {@code requires}, and the root registered last decides what {@code /command}
+     * alone runs. Put permission checks on the mod's subcommands, not on its {@code /command} root,
+     * so that they hold in either registration order.
+     */
     public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         Objects.requireNonNull(dispatcher, "dispatcher");
         dispatcher.register(

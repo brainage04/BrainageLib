@@ -9,6 +9,7 @@ import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import org.jspecify.annotations.Nullable;
 
 public final class ModFeedback {
     /** What {@link #requirePlayer} sends to a command source that is not a player. */
@@ -97,7 +98,7 @@ public final class ModFeedback {
      * a player also hears the click sound. Commands that bind a {@link ServerPlayer} start with
      * this instead of repeating the check and the sound.
      */
-    public ServerPlayer requirePlayer(CommandSourceStack source) {
+    public @Nullable ServerPlayer requirePlayer(CommandSourceStack source) {
         Objects.requireNonNull(source, "source");
         ServerPlayer player = source.getPlayer();
         if (player == null) {
