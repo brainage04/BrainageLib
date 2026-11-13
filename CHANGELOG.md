@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+Nothing changes for players: the new API only builds and registers game rules for the mods that use it.
+
+### New API
+
+- `GameRuleSet`: one mod's boolean and integer game rules with their ids, built in common code and registered once from each loader (`registerAll`). Rules built this way behave like the game's own under `/gamerule`, in the world's saved rules and in the edit-game-rules screen.
+- `GameRuleFactory.bool(...)` and `GameRuleFactory.integer(...)` build the same rules without an id.
+
 ## 2.0.0
 
 BrainageLib 2.0.0 is a major release: it removes public API, so mods built against 1.x may need changes. Telekinesis 1.2.0 uses none of the removed members and keeps working.

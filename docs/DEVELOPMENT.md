@@ -175,6 +175,33 @@ BrainageLib logs load problems, refused saves and write failures.
 
 `ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
 
+## Game rules
+
+`io.github.brainage04.brainagelib.gamerule` builds a mod's boolean and integer game rules in common code, the way the game builds its own, so `/gamerule`, the world's saved rules and the edit-game-rules screen treat them like vanilla rules on both loaders.
+
+Create one `GameRuleSet` per mod, add every rule to it while the mod initializes, and register the set once from each loader:
+
+```java
+public static final GameRuleSet RULES = GameRuleSet.create(MOD_ID);
+public static final GameRule<Boolean> ENABLED = RULES.bool("enabled", GameRuleCategory.PLAYER, true);
+public static final GameRule<Integer> RADIUS = RULES.integer("radius", GameRuleCategory.MISC, 8, 1, 64);
+
+// Fabric, in onInitialize():
+RULES.registerAll((id, rule) -> Registry.register(BuiltInRegistries.GAME_RULE, id, rule));
+
+// NeoForge, in the mod constructor:
+modBus.addListener((RegisterEvent event) ->
+        event.register(Registries.GAME_RULE, helper -> RULES.registerAll(helper::register)));
+```
+
+- `bool(path, category, default)` is a true/false rule; `/gamerule` returns 1 for true and 0 for false.
+- `integer(path, category, default, min)` and `integer(path, category, default, min, max)` accept whole numbers in the range, both ends included, and `/gamerule` returns the value. A default outside the range, or `min` above `max`, throws `IllegalArgumentException` when the rule is built.
+- `add(path, rule)` adds a rule built elsewhere, for example with `GameRuleFactory`, which builds the same rules without an id.
+- Each rule's id is `<namespace>:<path>`. A path or rule added twice throws `IllegalArgumentException`.
+- `registerAll` runs once. A rule added after it throws `IllegalStateException`, so a rule in a class that loads too late fails at once instead of silently missing from the registry.
+
+A rule's name and description in the edit-game-rules screen come from the translation keys `gamerule.<namespace>.<path>` and `gamerule.<namespace>.<path>.description`, which the mod's own language file provides.
+
 ## Drop capture
 
 `io.github.brainage04.brainagelib.drops` sends drops and experience to the player responsible for them, for every mod that installs a policy. BrainageLib's own mixins open a capture scope for:
