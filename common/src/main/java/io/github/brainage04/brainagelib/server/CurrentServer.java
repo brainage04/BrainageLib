@@ -4,9 +4,9 @@ import net.minecraft.server.MinecraftServer;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The server running in this game instance, for code the game gives no server or level to (a
- * static item method, worldgen settings read on worldgen threads). Code that has a level or a
- * player should use {@code level.getServer()} instead.
+ * The server running in this game instance, for code the game gives no server or level to (a static
+ * item method, worldgen settings read on worldgen threads). Code that has a level or a player
+ * should use {@code level.getServer()} instead.
  *
  * <p>A server is current from the moment its thread starts, before it loads its levels and before
  * any starting listener runs, until its thread ends, after every stopped listener. In a client it
