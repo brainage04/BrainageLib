@@ -120,6 +120,7 @@ Brigadier merges the page's `/example` root with the mod's own `/example` root. 
 - `JsonFile<T>` reads and writes one JSON document. `load()` returns `Missing`, `Loaded(value)`, `Invalid(exception)` (not JSON, JSON `null`, or rejected by the decoder) or `IoError(exception)`; `lastLoad()` returns the most recent result. `save(value)` returns `SAVED`, `FAILED` or `KEPT_ORIGINAL`.
 - `ConfigFile<T>` is a mod's own config: one document, one default value and the value in effect, without repeating the file setup.
 - `WorldPlayerStore<P>` keeps UUID-keyed player preferences in a world-folder file shaped `{"schemaVersion": N, "players": {"<uuid>": {...}}}`. Call `load(server)` when the server starts (a missing file is created empty) and `close()` when it stops.
+- `PlayerIdCodecs` keys a mod's saved data (`SavedData` with a codec) by player, through the game's own UUID text codec, `UUIDUtil.STRING_CODEC`.
 
 A file that failed to load is never overwritten by default (`FailedLoadPolicy.KEEP_ORIGINAL`): changes stay in memory for the session, `save` returns `KEPT_ORIGINAL`, and the mod tells the player or console that the change was not saved. A later successful load allows saves again. Choose `ALLOW_OVERWRITE` only for files that are safe to replace.
 
@@ -170,6 +171,20 @@ Whenever the default becomes the value in effect (before the first load, and whe
 - after a load that failed, so a file the mod could not read is never overwritten.
 
 BrainageLib logs load problems, refused saves and write failures.
+
+### Player-keyed saved data
+
+`PlayerIdCodecs.byPlayer(valueCodec)` is a map from each player's UUID to a value, saved as an object keyed by UUID text; `PlayerIdCodecs.PLAYER_SET` is a set of players (guests, for example), saved as a list of UUID text that keeps the set's order and reads back as a mutable set without repeats. Both write the same text as `Codec.STRING.xmap(UUID::fromString, UUID::toString)`, so files written that way load unchanged.
+
+```java
+private static final Codec<ExampleData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+        PlayerIdCodecs.byPlayer(PlayerIdCodecs.PLAYER_SET)
+                .optionalFieldOf("shares", Map.of())
+                .forGetter(ExampleData::snapshot)
+).apply(instance, ExampleData::new));
+```
+
+The difference is a damaged file. A UUID that does not parse is a codec error for that entry alone, and the game's saved-data loader logs it and keeps the rest of the file. `UUID::fromString` throws instead, and the loader then discards the whole file and starts the saved data empty, which it writes over the file at the next save.
 
 ## Confirmation windows
 

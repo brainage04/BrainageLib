@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+Nothing changes for players: the new API is for the mods that use it.
+
+### New API
+
+- `PlayerIdCodecs.byPlayer(valueCodec)` and `PlayerIdCodecs.PLAYER_SET`: codecs for saved data keyed by players, built on the game's own UUID text codec. They write the same text as a mod's own `Codec.STRING.xmap(UUID::fromString, UUID::toString)`, but a damaged UUID in a saved file costs only that entry, where the mod's own codec makes the game discard the whole file.
+
 ## 2.0.0
 
 BrainageLib 2.0.0 is a major release: it removes public API, so mods built against 1.x may need changes. Telekinesis 1.2.0 uses none of the removed members and keeps working.

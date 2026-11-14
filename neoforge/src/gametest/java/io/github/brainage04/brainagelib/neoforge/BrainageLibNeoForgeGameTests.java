@@ -3,6 +3,7 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.PlayerIdCodecsGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -106,7 +107,10 @@ public final class BrainageLibNeoForgeGameTests {
                     new TestFunction(
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
                             DropCaptureGameTests
-                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
+                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
+                    new TestFunction(
+                            "player_id_codecs_damaged_player_key_loses_only_that_player",
+                            PlayerIdCodecsGameTests::damagedPlayerKeyLosesOnlyThatPlayer));
 
     private BrainageLibNeoForgeGameTests() {}
 
