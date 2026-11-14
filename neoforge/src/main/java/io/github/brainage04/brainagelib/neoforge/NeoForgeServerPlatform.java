@@ -99,12 +99,14 @@ public final class NeoForgeServerPlatform implements ServerPlatform {
 
     // An exception that got out would skip the listeners after it: the bus rethrows it, which
     // turns a normal stop into a crash, and at the head of stopServer it would also skip saving
-    // the levels and unlocking the world (dec/server-26.3 MinecraftServer.java:620-675).
+    // the levels and unlocking the world (dec/server-26.3 MinecraftServer.java:620-675). Exception
+    // rather than RuntimeException, because a Kotlin listener or @SneakyThrows can throw a checked
+    // one through the Consumer.
     private static void runStoppingListener(
             Consumer<MinecraftServer> listener, MinecraftServer server) {
         try {
             listener.accept(server);
-        } catch (RuntimeException exception) {
+        } catch (Exception exception) {
             BrainageLib.LOGGER.error("A server stopping listener failed", exception);
         }
     }

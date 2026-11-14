@@ -44,12 +44,13 @@ public final class FabricServerPlatform implements ServerPlatform {
         // SERVER_STOPPING runs at the head of stopServer, and its invoker does not catch, so an
         // exception that got out would skip the listeners after it, saving the levels and unlocking
         // the world (fabric-lifecycle-events-v1 4.1.9 MinecraftServerMixin.beforeShutdownServer,
-        // dec/server-26.3 MinecraftServer.java:620-675).
+        // dec/server-26.3 MinecraftServer.java:620-675). Exception rather than RuntimeException,
+        // because a Kotlin listener or @SneakyThrows can throw a checked one through the Consumer.
         ServerLifecycleEvents.SERVER_STOPPING.register(
                 server -> {
                     try {
                         listener.accept(server);
-                    } catch (RuntimeException exception) {
+                    } catch (Exception exception) {
                         BrainageLib.LOGGER.error("A server stopping listener failed", exception);
                     }
                 });
