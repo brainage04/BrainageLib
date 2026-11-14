@@ -21,6 +21,7 @@ public final class ServerPlatformGameTests {
     private static volatile boolean levelsLoadedWhenStarting;
     private static volatile MinecraftServer startedServer;
     private static volatile boolean levelsLoadedWhenStarted;
+    private static volatile Commands.CommandSelection commandSelection;
 
     private ServerPlatformGameTests() {}
 
@@ -39,9 +40,11 @@ public final class ServerPlatformGameTests {
                 });
         platform.onEndServerTick(server -> END_TICKS.incrementAndGet());
         platform.onRegisterCommands(
-                (dispatcher, context) ->
-                        dispatcher.register(
-                                Commands.literal(PROBE_COMMAND).executes(command -> PROBE_RESULT)));
+                (dispatcher, context, selection) -> {
+                    commandSelection = selection;
+                    dispatcher.register(
+                            Commands.literal(PROBE_COMMAND).executes(command -> PROBE_RESULT));
+                });
     }
 
     public static void listenersRunOnTheRunningServer(GameTestHelper context, String loaderName) {
@@ -60,6 +63,12 @@ public final class ServerPlatformGameTests {
         context.assertTrue(
                 levelsLoadedWhenStarted,
                 "Started listeners run once the server has loaded its levels");
+
+        // A GameTest server loads its world with the dedicated selection (dec/server-26.3
+        // GameTestServer.java:110), as a dedicated server does (Main.java:301).
+        context.assertTrue(
+                commandSelection == Commands.CommandSelection.DEDICATED,
+                "Command registrars get the server's command selection, got " + commandSelection);
 
         var output = new CapturedCommandOutput();
         try {

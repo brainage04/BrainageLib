@@ -24,7 +24,8 @@ public final class FabricServerPlatform implements ServerPlatform {
     @Override
     public void onRegisterCommands(CommandRegistrar registrar) {
         CommandRegistrationCallback.EVENT.register(
-                (dispatcher, context, selection) -> registrar.register(dispatcher, context));
+                (dispatcher, context, selection) ->
+                        registrar.register(dispatcher, context, selection));
     }
 
     @Override

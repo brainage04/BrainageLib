@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
 
 /**
@@ -39,7 +40,10 @@ public interface ServerPlatform {
     /** Runs {@code listener} once the server has loaded its levels, before its first tick. */
     void onServerStarted(Consumer<MinecraftServer> listener);
 
-    /** Runs {@code listener} after the server's last tick, before it saves and shuts down. */
+    /**
+     * Runs {@code listener} when the server stops, before it saves and shuts down: after its last
+     * tick, and also after a crash or a failed start.
+     */
     void onServerStopping(Consumer<MinecraftServer> listener);
 
     /** Runs {@code listener} after the server has saved and shut down. */
@@ -48,10 +52,16 @@ public interface ServerPlatform {
     /** Runs {@code listener} at the end of every server tick. */
     void onEndServerTick(Consumer<MinecraftServer> listener);
 
-    /** Adds a mod's commands to the server's command tree. */
+    /**
+     * Adds a mod's commands to the server's command tree. {@code selection} says which kind of
+     * server the tree is for, so a mod can add commands only to dedicated servers ({@code
+     * selection.includeDedicated}) or only to singleplayer ({@code selection.includeIntegrated}).
+     */
     @FunctionalInterface
     interface CommandRegistrar {
         void register(
-                CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context);
+                CommandDispatcher<CommandSourceStack> dispatcher,
+                CommandBuildContext context,
+                Commands.CommandSelection selection);
     }
 }

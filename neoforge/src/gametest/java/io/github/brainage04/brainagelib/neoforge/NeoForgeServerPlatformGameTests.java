@@ -1,11 +1,14 @@
 package io.github.brainage04.brainagelib.neoforge;
 
+import com.mojang.brigadier.CommandDispatcher;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.commands.Commands;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.BusBuilder;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -31,6 +34,8 @@ public final class NeoForgeServerPlatformGameTests {
         platform.onServerStopping(listened -> calls.add(listened == server ? "stopping" : "?"));
         platform.onServerStopped(listened -> calls.add(listened == server ? "stopped" : "?"));
         platform.onEndServerTick(listened -> calls.add(listened == server ? "end tick" : "?"));
+        platform.onRegisterCommands(
+                (dispatcher, buildContext, selection) -> calls.add("commands " + selection));
 
         bus.post(new ServerStartingEvent(server));
         bus.post(new ServerTickEvent.Pre(() -> true, server));
@@ -48,6 +53,34 @@ public final class NeoForgeServerPlatformGameTests {
                 calls,
                 List.of("starting", "started", "end tick", "stopping", "stopped"),
                 "Calls in the order of the events");
+
+        // After a normal stop NeoForge reaches stopServer after ServerStoppingEvent; after a crash
+        // or a failed start it reaches stopServer without that event.
+        calls.clear();
+        bus.post(new ServerStoppingEvent(server));
+        platform.beforeStopServer(server);
+        bus.post(new ServerStoppedEvent(server));
+        context.assertValueEqual(
+                calls, List.of("stopping", "stopped"), "Calls for a normal stop: stopping once");
+
+        calls.clear();
+        platform.beforeStopServer(server);
+        bus.post(new ServerStoppedEvent(server));
+        context.assertValueEqual(
+                calls,
+                List.of("stopping", "stopped"),
+                "Calls for a stop without ServerStoppingEvent (a crash or a failed start)");
+
+        calls.clear();
+        bus.post(
+                new RegisterCommandsEvent(
+                        new CommandDispatcher<>(),
+                        Commands.CommandSelection.INTEGRATED,
+                        Commands.createValidationContext(server.registryAccess())));
+        context.assertValueEqual(
+                calls,
+                List.of("commands INTEGRATED"),
+                "Command registrars get the event's command selection");
         context.succeed();
     }
 }

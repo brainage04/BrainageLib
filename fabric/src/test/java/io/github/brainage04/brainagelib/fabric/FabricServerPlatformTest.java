@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.commands.Commands;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,8 @@ class FabricServerPlatformTest {
         platform.onServerStopping(server -> CALLS.add("stopping"));
         platform.onServerStopped(server -> CALLS.add("stopped"));
         platform.onEndServerTick(server -> CALLS.add("end tick"));
+        platform.onRegisterCommands(
+                (dispatcher, context, selection) -> CALLS.add("commands " + selection));
     }
 
     @BeforeEach
@@ -55,6 +59,14 @@ class FabricServerPlatformTest {
     void stoppedListensToServerStopped() {
         ServerLifecycleEvents.SERVER_STOPPED.invoker().onServerStopped(null);
         assertEquals(List.of("stopped"), CALLS);
+    }
+
+    @Test
+    void commandRegistrarsGetTheCommandSelection() {
+        CommandRegistrationCallback.EVENT
+                .invoker()
+                .register(null, null, Commands.CommandSelection.INTEGRATED);
+        assertEquals(List.of("commands INTEGRATED"), CALLS);
     }
 
     @Test

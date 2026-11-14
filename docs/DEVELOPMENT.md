@@ -65,7 +65,7 @@ In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusa
 public static void initialize() {
     ServerPlatform platform = ServerPlatform.get();
     config = ExampleConfig.load(platform.configDirectory().resolve("example.json"));
-    platform.onRegisterCommands((dispatcher, context) -> ExampleCommands.register(dispatcher, context));
+    platform.onRegisterCommands((dispatcher, context, selection) -> ExampleCommands.register(dispatcher, context));
     platform.onServerStarting(ExampleState::reset);
     platform.onEndServerTick(ExampleRequests::tick);
     platform.onServerStopping(ExampleRequests::clear);
@@ -76,12 +76,16 @@ Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod 
 
 | Method | Runs | Fabric | NeoForge |
 |---|---|---|---|
-| `onRegisterCommands` | every time the server builds its command tree | `CommandRegistrationCallback` | `RegisterCommandsEvent` |
+| `onRegisterCommands` | every time the server builds its command tree, with its command selection | `CommandRegistrationCallback` | `RegisterCommandsEvent` |
 | `onServerStarting` | when a server starts, before it loads its levels | `SERVER_STARTING` | `ServerAboutToStartEvent` |
 | `onServerStarted` | once the levels are loaded, before the first tick | `SERVER_STARTED` | `ServerStartedEvent` |
-| `onServerStopping` | after the last tick, before the server saves and shuts down | `SERVER_STOPPING` | `ServerStoppingEvent` |
+| `onServerStopping` | when the server stops, before it saves and shuts down: after the last tick, and also after a crash or a failed start | `SERVER_STOPPING` | `ServerStoppingEvent`, or the start of `stopServer` when NeoForge did not post it |
 | `onServerStopped` | after the server has shut down | `SERVER_STOPPED` | `ServerStoppedEvent` |
 | `onEndServerTick` | at the end of every server tick | `END_SERVER_TICK` | `ServerTickEvent.Post` |
+
+The command selection says which kind of server the tree is for: add dedicated-only commands when `selection.includeDedicated` is true, singleplayer-only ones when `selection.includeIntegrated` is.
+
+NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders.
 
 NeoForge's `ServerStartingEvent` is not the counterpart of Fabric's `SERVER_STARTING`: NeoForge posts it after the levels have loaded, so state that world generation reads must be set in `onServerStarting`, and work that needs the levels belongs in `onServerStarted`.
 
