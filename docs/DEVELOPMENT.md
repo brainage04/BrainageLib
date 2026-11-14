@@ -175,7 +175,9 @@ BrainageLib logs load problems, refused saves and write failures.
 
 `CurrentServer.get()` (in `io.github.brainage04.brainagelib.server`) returns the server running in this game instance, or `null` when none runs. It is for code the game gives no server, level or player to, such as a static item method or settings read on world generation threads; code that has a level should use `level.getServer()`.
 
-A server becomes current when its thread starts, before it loads its levels and before any starting listener runs, and stops being current when its thread ends, after every stopped listener. In a client it is the singleplayer server while one runs, and `null` while the client plays on a remote server. When a new server starts before the old one's thread has ended, the new one stays current.
+A server becomes current before it loads its levels and before any starting listener runs, and stops being current after every stopped listener has run. On Fabric a BrainageLib mixin makes it current when the server's thread starts and clears it when the thread ends. On NeoForge BrainageLib reads the loader's own `ServerLifecycleHooks.getCurrentServer()`, which NeoForge sets just before `ServerAboutToStartEvent` and clears just after `ServerStoppedEvent`.
+
+Call it only from code that runs for the server: the server thread or the world generation threads the server starts. Client code must not branch on it. In a client it returns the singleplayer server while one runs and `null` while the client plays on a remote server, so the same client code would behave differently in singleplayer and on a server.
 
 ## Confirmation windows
 

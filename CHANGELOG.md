@@ -6,7 +6,7 @@ Nothing changes for players: the new API is for the mods that use it.
 
 ### New API
 
-- `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from when its thread starts, before it loads its levels, until its thread ends.
+- `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from before it loads its levels until after its stopped listeners. Use it from server code only: in a client it is the singleplayer server while one runs and `null` on a remote server.
 
 ## 2.0.0
 
