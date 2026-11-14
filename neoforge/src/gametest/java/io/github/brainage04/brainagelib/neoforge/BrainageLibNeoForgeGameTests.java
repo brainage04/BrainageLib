@@ -3,6 +3,7 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.ServerPlatformGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -10,6 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
@@ -106,7 +108,15 @@ public final class BrainageLibNeoForgeGameTests {
                     new TestFunction(
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
                             DropCaptureGameTests
-                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
+                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
+                    new TestFunction(
+                            "server_platform_listeners_run_on_the_running_server",
+                            context ->
+                                    ServerPlatformGameTests.listenersRunOnTheRunningServer(
+                                            context, "NeoForge")),
+                    new TestFunction(
+                            "neoforge_server_platform_listens_to_the_matching_events",
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -118,6 +128,12 @@ public final class BrainageLibNeoForgeGameTests {
                     Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, testFunction.id()),
                     testFunction::function);
         }
+    }
+
+    /** Registers the GameTest platform listeners while the mod initializes, as a mod would. */
+    @SubscribeEvent
+    public static void registerPlatformListeners(FMLCommonSetupEvent event) {
+        ServerPlatformGameTests.registerListeners();
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}
