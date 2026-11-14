@@ -158,4 +158,9 @@ public final class BrainageLibGameTest {
     public void gameRuleSetRulesWorkWithTheGameruleCommandAndAreSaved(GameTestHelper context) {
         GameRuleSetGameTests.rulesWorkWithTheGameruleCommandAndAreSaved(context);
     }
+
+    @GameTest
+    public void serverPlatformListenersRunOnTheRunningServer(GameTestHelper context) {
+        ServerPlatformGameTests.listenersRunOnTheRunningServer(context, "Fabric");
+    }
 }

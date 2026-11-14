@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
 import io.github.brainage04.brainagelib.GameRuleSetGameTests;
+import io.github.brainage04.brainagelib.ServerPlatformGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -12,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
@@ -111,7 +113,15 @@ public final class BrainageLibNeoForgeGameTests {
                                     ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
                     new TestFunction(
                             "game_rule_set_rules_work_with_the_gamerule_command_and_are_saved",
-                            GameRuleSetGameTests::rulesWorkWithTheGameruleCommandAndAreSaved));
+                            GameRuleSetGameTests::rulesWorkWithTheGameruleCommandAndAreSaved),
+                    new TestFunction(
+                            "server_platform_listeners_run_on_the_running_server",
+                            context ->
+                                    ServerPlatformGameTests.listenersRunOnTheRunningServer(
+                                            context, "NeoForge")),
+                    new TestFunction(
+                            "neoforge_server_platform_listens_to_the_matching_events",
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -127,6 +137,12 @@ public final class BrainageLibNeoForgeGameTests {
         event.register(
                 Registries.GAME_RULE,
                 helper -> GameRuleSetGameTests.RULES.registerAll(helper::register));
+    }
+
+    /** Registers the GameTest platform listeners while the mod initializes, as a mod would. */
+    @SubscribeEvent
+    public static void registerPlatformListeners(FMLCommonSetupEvent event) {
+        ServerPlatformGameTests.registerListeners();
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}
