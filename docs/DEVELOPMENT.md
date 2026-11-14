@@ -85,7 +85,7 @@ Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod 
 
 The command selection says which kind of server the tree is for: add dedicated-only commands when `selection.includeDedicated` is true, singleplayer-only ones when `selection.includeIntegrated` is.
 
-NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders.
+NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders. A listener that throws there is logged, and the other listeners and the save still run.
 
 NeoForge's `ServerStartingEvent` is not the counterpart of Fabric's `SERVER_STARTING`: NeoForge posts it after the levels have loaded, so state that world generation reads must be set in `onServerStarting`, and work that needs the levels belongs in `onServerStarted`.
 

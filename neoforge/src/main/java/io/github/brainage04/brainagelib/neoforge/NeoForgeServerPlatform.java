@@ -1,5 +1,6 @@
 package io.github.brainage04.brainagelib.neoforge;
 
+import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.platform.ServerPlatform;
 import java.nio.file.Path;
 import java.util.List;
@@ -90,7 +91,13 @@ public final class NeoForgeServerPlatform implements ServerPlatform {
         // runServer's finally reaches on every path.
         if (stoppingPostedFor != server) {
             for (Consumer<MinecraftServer> listener : stoppingListeners) {
-                listener.accept(server);
+                // Thrown from here, the exception would leave stopServer before it saves the levels
+                // and unlocks the world (dec/server-26.3 MinecraftServer.java:620-675).
+                try {
+                    listener.accept(server);
+                } catch (RuntimeException exception) {
+                    BrainageLib.LOGGER.error("A server stopping listener failed", exception);
+                }
             }
         }
         stoppingPostedFor = null;
