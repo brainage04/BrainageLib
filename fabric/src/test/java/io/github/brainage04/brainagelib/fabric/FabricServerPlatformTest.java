@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.fabric;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -31,11 +32,19 @@ class FabricServerPlatformTest {
                 server -> {
                     throw new IllegalStateException("A stopping listener failed on purpose");
                 });
+        // A Kotlin listener or @SneakyThrows can throw a checked exception through a Consumer.
+        platform.onServerStopping(
+                server -> sneakyThrow(new IOException("A stopping listener failed on purpose")));
         platform.onServerStopping(server -> CALLS.add("stopping"));
         platform.onServerStopped(server -> CALLS.add("stopped"));
         platform.onEndServerTick(server -> CALLS.add("end tick"));
         platform.onRegisterCommands(
                 (dispatcher, context, selection) -> CALLS.add("commands " + selection));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable throwable) throws T {
+        throw (T) throwable;
     }
 
     @BeforeEach
