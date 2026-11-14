@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+Nothing changes for players: the new API is for the mods that use it.
+
+### New API
+
+- `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from when its thread starts, before it loads its levels, until its thread ends.
+
 ## 2.0.0
 
 BrainageLib 2.0.0 is a major release: it removes public API, so mods built against 1.x may need changes. Telekinesis 1.2.0 uses none of the removed members and keeps working.
