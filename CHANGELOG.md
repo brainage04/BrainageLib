@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.0 (unreleased)
+## 2.2.0 (unreleased)
 
 Nothing changes for players: the new API is for the mods that use it.
 
