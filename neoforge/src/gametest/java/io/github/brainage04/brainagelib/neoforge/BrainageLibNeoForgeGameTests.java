@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.neoforge;
 
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
+import io.github.brainage04.brainagelib.CurrentServerGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
 import java.util.List;
 import java.util.function.Consumer;
@@ -10,6 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
@@ -106,7 +108,10 @@ public final class BrainageLibNeoForgeGameTests {
                     new TestFunction(
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
                             DropCaptureGameTests
-                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
+                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
+                    new TestFunction(
+                            "current_server_is_the_running_server",
+                            CurrentServerGameTests::currentServerIsTheRunningServer));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -118,6 +123,12 @@ public final class BrainageLibNeoForgeGameTests {
                     Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, testFunction.id()),
                     testFunction::function);
         }
+    }
+
+    /** NeoForge's first server-starting event, for CurrentServerGameTests. */
+    @SubscribeEvent
+    public static void serverAboutToStart(ServerAboutToStartEvent event) {
+        CurrentServerGameTests.serverStarting(event.getServer());
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}

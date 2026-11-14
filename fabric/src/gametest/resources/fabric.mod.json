@@ -6,6 +6,7 @@
 	"icon": "assets/brainagelib/icon.png",
 	"environment": "*",
 	"entrypoints": {
+		"main": ["io.github.brainage04.brainagelib.BrainageLibGameTestServerStarting"],
 		"fabric-gametest": ["io.github.brainage04.brainagelib.BrainageLibGameTest"],
 		"fabric-client-gametest": ["io.github.brainage04.brainagelib.BrainageLibClientGameTest"]
 	}
