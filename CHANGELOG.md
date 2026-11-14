@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (unreleased)
+
+Nothing changes for players: the new API is for the mods that use it.
+
+### New API
+
+- `OwnerAccessList<K>`: which guests an owner lets use something of theirs (a spawn, a named home), with `allows`, `grant` and `revoke` returning how many guests changed, and a callback that runs only when something changed. The mod's own codec saves it through `snapshot()` and `load(...)`.
+
 ## 2.0.0
 
 BrainageLib 2.0.0 is a major release: it removes public API, so mods built against 1.x may need changes. Telekinesis 1.2.0 uses none of the removed members and keeps working.
