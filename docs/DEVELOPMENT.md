@@ -213,6 +213,19 @@ A server becomes current before it loads its levels and before any starting list
 
 Call it only from code that runs for the server: the server thread or the world generation threads the server starts. Client code must not branch on it. In a client it returns the singleplayer server while one runs and `null` while the client plays on a remote server, so the same client code would behave differently in singleplayer and on a server.
 
+## Access lists
+
+`OwnerAccessList<K>` (in `io.github.brainage04.brainagelib.access`) records which players an owner lets use something of theirs, such as a spawn or a named home. Each key names its owner: `OwnerAccessList.byOwner(onChange)` is keyed by the owner's UUID, `OwnerAccessList.create(Home::owner, onChange)` by a record of owner and home name.
+
+- `allows(key, player)` is true for the key's owner and for every guest the owner granted.
+- `grant(key, players)` and `revoke(key, players)` return how many guests they added or removed. `grant` skips the owner and players already granted; a key whose last guest is revoked is removed.
+- `onChange` (a saved data's `setDirty`) runs only when a grant or revoke changed something.
+- The list does not save itself: `snapshot()` gives the saved data's codec every key with its guests, and `load(saved)` puts the decoded entries back without calling `onChange`. Keys without guests are never stored, and an owner listed as their own guest is left out.
+
+Checks that belong to the mod stay there, for example refusing to share a home that does not exist. Use the list from the server thread.
+
+The mod's codec keeps the mod's save format, so files saved before the mod used the list still load, and converts at the boundary. `load` takes any collection of guests, so a decoded list goes straight in, but `snapshot()` returns sets, so a codec that saves lists copies each set into a list. A format nested by owner and then by name, such as `owner -> home name -> guests`, regroups the list's `Map<Home, Set<UUID>>` into the nested map when saving and flattens it into `Home` keys when loading.
+
 ## Confirmation windows
 
 `ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.

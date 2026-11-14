@@ -35,6 +35,6 @@ Telekinesis before 1.2.0 carries its own drop capture on the same game hooks; Br
 
 ## Documentation
 
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, loader platform, command feedback, help registration, saved files, the current server, confirmation windows, game rules, drop capture, GameTest support, and development.
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) - dependency setup, loader platform, command feedback, help registration, saved files, the current server, access lists, confirmation windows, game rules, drop capture, GameTest support, and development.
 - [docs/RELEASE.md](docs/RELEASE.md) - release automation.
 - [docs/MODRINTH.md](docs/MODRINTH.md) - optional Modrinth publishing.
