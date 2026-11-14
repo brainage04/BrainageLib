@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.feedback.ModFeedback;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import io.github.brainage04.brainagelib.help.ServerModHelpEntry;
 import io.github.brainage04.brainagelib.help.ServerModHelpRegistry;
+import io.github.brainage04.brainagelib.server.CurrentServer;
 import io.github.brainage04.minecraftmodconventions.ClientGameTestRecorder;
 import io.github.brainage04.minecraftmodconventions.ClientGameTestServers;
 import java.lang.reflect.Field;
@@ -133,7 +134,13 @@ public final class BrainageLibClientGameTest implements FabricClientGameTest {
                                 "brainagelib.feedback",
                                 "Consistent feedback",
                                 "ModFeedback adds the grey mod-name prefix and colours neutral, success and error messages");
+
+                        if (!server.computeOnServer(
+                                minecraftServer -> CurrentServer.get() == minecraftServer))
+                            throw new AssertionError("The running dedicated server is not current");
                     });
+            // The test's dedicated server runs in this game instance, so its end must clear it.
+            context.waitFor(client -> CurrentServer.get() == null);
         } finally {
             ServerModHelpRegistry.unregister(OPERATOR_CONFIG);
             ServerModHelpRegistry.unregister(PLAYER_HELP);
