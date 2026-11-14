@@ -6,8 +6,8 @@ BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainag
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:2.0.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:2.0.0"
+    implementation "io.github.brainage04:brainagelib:2.1.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:2.1.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:2.0.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`, capped below the next majo
 ```json
 {
   "depends": {
-    "brainagelib": ">=2.0.0 <3.0.0"
+    "brainagelib": ">=2.1.0 <3.0.0"
   }
 }
 ```
@@ -35,7 +35,7 @@ For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neofor
 [[dependencies.examplemod]]
 modId="brainagelib"
 type="required"
-versionRange="[2.0.0,3.0.0)"
+versionRange="[2.1.0,3.0.0)"
 ordering="AFTER"
 side="BOTH"
 ```
@@ -49,7 +49,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:2.0.0")
+        coordinate.set("io.github.brainage04:brainagelib:2.1.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -228,14 +228,14 @@ List<BlockPos> vein =
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:2.0.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:2.1.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.0.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.0.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.1.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.1.0"
 }
 ```
 

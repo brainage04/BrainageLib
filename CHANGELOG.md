@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0
+
+BrainageLib 2.1.0 adds one API and changes nothing players see. The drop changes listed under 2.0.0 (decorations, armour stands, vehicles and credited kills) shipped in 2.0.0; 2.1.0 adds nothing to them.
+
+### New API
+
+- `ConnectedBlocks` (`io.github.brainage04.brainagelib.blocks`): the breadth-first search a vein miner or tree feller runs from a broken block. `find(origin, limit, adjacency, member)` returns up to `limit` connected positions, nearest first, `origin` left out, visiting neighbours in one fixed order and asking `member` about each position once. `Adjacency` picks face (6), face and edge (18) or all 26 neighbours. `loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk.
+
+### Build and publishing
+
+- A mod that calls `ConnectedBlocks` needs `">=2.1.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.1.0,3.0.0)"` in `neoforge.mods.toml`.
+
 ## 2.0.0
 
 BrainageLib 2.0.0 is a major release: it removes public API, so mods built against 1.x may need changes. Telekinesis 1.2.0 uses none of the removed members and keeps working.
