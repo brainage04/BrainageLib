@@ -60,6 +60,10 @@ public final class PlayerIdCodecsGameTests {
         context.succeed();
     }
 
+    // NeoForge 26.3.0.99 deprecates the game's constructor in favour of its own ServerLevel one,
+    // which common code cannot call; the game's constructor is dec/server-26.3
+    // SavedDataStorage.java:50.
+    @SuppressWarnings("deprecation")
     private static PlayerCounts load(
             MinecraftServer server, Path directory, SavedDataType<PlayerCounts> type) {
         try (SavedDataStorage storage =
