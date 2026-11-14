@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.neoforge;
 
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
+import io.github.brainage04.brainagelib.CurrentServerGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
 import io.github.brainage04.brainagelib.GameRuleSetGameTests;
 import io.github.brainage04.brainagelib.ServerPlatformGameTests;
@@ -14,6 +15,7 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
@@ -121,7 +123,10 @@ public final class BrainageLibNeoForgeGameTests {
                                             context, "NeoForge")),
                     new TestFunction(
                             "neoforge_server_platform_listens_to_the_matching_events",
-                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents));
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents),
+                    new TestFunction(
+                            "current_server_is_the_running_server",
+                            CurrentServerGameTests::currentServerIsTheRunningServer));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -143,6 +148,12 @@ public final class BrainageLibNeoForgeGameTests {
     @SubscribeEvent
     public static void registerPlatformListeners(FMLCommonSetupEvent event) {
         ServerPlatformGameTests.registerListeners();
+    }
+
+    /** NeoForge's first server-starting event, for CurrentServerGameTests. */
+    @SubscribeEvent
+    public static void serverAboutToStart(ServerAboutToStartEvent event) {
+        CurrentServerGameTests.serverStarting(event.getServer());
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}

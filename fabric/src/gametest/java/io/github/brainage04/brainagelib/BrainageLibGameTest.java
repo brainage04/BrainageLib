@@ -163,4 +163,9 @@ public final class BrainageLibGameTest {
     public void serverPlatformListenersRunOnTheRunningServer(GameTestHelper context) {
         ServerPlatformGameTests.listenersRunOnTheRunningServer(context, "Fabric");
     }
+
+    @GameTest
+    public void currentServerIsTheRunningServer(GameTestHelper context) {
+        CurrentServerGameTests.currentServerIsTheRunningServer(context);
+    }
 }

@@ -8,7 +8,8 @@
 	"entrypoints": {
 		"main": [
 			"io.github.brainage04.brainagelib.BrainageLibGameTestRules",
-			"io.github.brainage04.brainagelib.BrainageLibGameTestPlatform"
+			"io.github.brainage04.brainagelib.BrainageLibGameTestPlatform",
+			"io.github.brainage04.brainagelib.BrainageLibGameTestServerStarting"
 		],
 		"fabric-gametest": ["io.github.brainage04.brainagelib.BrainageLibGameTest"],
 		"fabric-client-gametest": ["io.github.brainage04.brainagelib.BrainageLibClientGameTest"]
