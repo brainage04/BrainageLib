@@ -9,7 +9,7 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 - Messages receive a grey mod-name prefix and a consistent yellow, green, or red body.
 - Combined player help and operator configuration command lists for registered mods.
 - One first-join notice instead of a separate message from each mod.
-- Drop capture shared by Telekinesis and Skyport Minigames: drops and experience from blocks a player breaks, mobs the game credits them with killing, item frames, glow item frames, paintings, cushions and armour stands they break, boats and minecarts they break with their contents, explosions they cause (including beds and respawn anchors they use) and the decaying leaves of trees they fell go to that player, as the installed mods' rules decide. On its own BrainageLib delivers nothing.
+- Drop capture shared by Telekinesis and Skyport Minigames. Drops and experience go straight to the player who caused them, as the installed mods' rules decide. That covers blocks a player breaks, mobs the game credits them with killing, item frames, paintings, cushions, armour stands, boats and minecarts they break (with the contents of chest boats and chest or hopper minecarts), explosions they cause (including beds and respawn anchors they use) and the decaying leaves of trees they fell. On its own BrainageLib delivers nothing.
 
 ## Getting started
 
@@ -31,7 +31,7 @@ No configuration yet.
 
 Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your server's loader. A client that installs a mod requiring BrainageLib, such as Skyport Minigames, installs it too, so its Modrinth listing marks it required on the client as well.
 
-Telekinesis before 1.2.0 carries its own drop capture on the same game hooks; BrainageLib 2.0.0 refuses to load beside it (Fabric `breaks`, NeoForge `incompatible`), so update Telekinesis together with BrainageLib.
+Telekinesis before 1.2.0 has its own drop capture on the same game hooks. BrainageLib 2.0.0 refuses to load beside it (Fabric `breaks`, NeoForge `incompatible`), so update Telekinesis together with BrainageLib.
 
 ## Documentation
 
