@@ -57,6 +57,36 @@ workspaceDependencies {
 
 In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
 
+## Loader platform
+
+`ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the loader services a server-side mod needs, with the same meaning on Fabric and NeoForge, so a mod no longer needs its own platform interface and one implementation per loader:
+
+```java
+public static void initialize() {
+    ServerPlatform platform = ServerPlatform.get();
+    config = ExampleConfig.load(platform.configDirectory().resolve("example.json"));
+    platform.onRegisterCommands((dispatcher, context) -> ExampleCommands.register(dispatcher, context));
+    platform.onServerStarting(ExampleState::reset);
+    platform.onEndServerTick(ExampleRequests::tick);
+    platform.onServerStopping(ExampleRequests::clear);
+}
+```
+
+Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod constructor), so the listeners are in place before a server starts.
+
+| Method | Runs | Fabric | NeoForge |
+|---|---|---|---|
+| `onRegisterCommands` | every time the server builds its command tree | `CommandRegistrationCallback` | `RegisterCommandsEvent` |
+| `onServerStarting` | when a server starts, before it loads its levels | `SERVER_STARTING` | `ServerAboutToStartEvent` |
+| `onServerStarted` | once the levels are loaded, before the first tick | `SERVER_STARTED` | `ServerStartedEvent` |
+| `onServerStopping` | after the last tick, before the server saves and shuts down | `SERVER_STOPPING` | `ServerStoppingEvent` |
+| `onServerStopped` | after the server has shut down | `SERVER_STOPPED` | `ServerStoppedEvent` |
+| `onEndServerTick` | at the end of every server tick | `END_SERVER_TICK` | `ServerTickEvent.Post` |
+
+NeoForge's `ServerStartingEvent` is not the counterpart of Fabric's `SERVER_STARTING`: NeoForge posts it after the levels have loaded, so state that world generation reads must be set in `onServerStarting`, and work that needs the levels belongs in `onServerStarted`.
+
+`loaderName()` returns `"Fabric"` or `"NeoForge"`, and `configDirectory()` the loader's config directory. Each listener is added to the loader's event when it is registered, so listeners run in the order the loader runs that event's listeners.
+
 ## Command feedback
 
 Create one `ModFeedback` instance per mod and reuse it for player and command-source output:
