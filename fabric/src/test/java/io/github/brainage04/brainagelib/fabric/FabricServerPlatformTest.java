@@ -25,6 +25,12 @@ class FabricServerPlatformTest {
         FabricServerPlatform platform = new FabricServerPlatform();
         platform.onServerStarting(server -> CALLS.add("starting"));
         platform.onServerStarted(server -> CALLS.add("started"));
+        // Fabric's invoker runs the listeners in a plain loop at the head of stopServer, so a
+        // throw that got out would also skip the listeners after it and the save.
+        platform.onServerStopping(
+                server -> {
+                    throw new IllegalStateException("A stopping listener failed on purpose");
+                });
         platform.onServerStopping(server -> CALLS.add("stopping"));
         platform.onServerStopped(server -> CALLS.add("stopped"));
         platform.onEndServerTick(server -> CALLS.add("end tick"));
@@ -50,7 +56,7 @@ class FabricServerPlatformTest {
     }
 
     @Test
-    void stoppingListensToServerStopping() {
+    void stoppingListensToServerStoppingPastAListenerThatThrows() {
         ServerLifecycleEvents.SERVER_STOPPING.invoker().onServerStopping(null);
         assertEquals(List.of("stopping"), CALLS);
     }

@@ -82,12 +82,23 @@ public final class NeoForgeServerPlatformGameTests {
                 List.of("commands INTEGRATED"),
                 "Command registrars get the event's command selection");
 
-        NeoForgeServerPlatform failing = new NeoForgeServerPlatform(BusBuilder.builder().build());
+        IEventBus failingBus = BusBuilder.builder().build();
+        NeoForgeServerPlatform failing = new NeoForgeServerPlatform(failingBus);
         failing.onServerStopping(
                 listened -> {
                     throw new IllegalStateException("A stopping listener failed on purpose");
                 });
         failing.onServerStopping(listened -> calls.add("stopping"));
+        // The bus rethrows a listener's exception, which would end a normal stop as a crash and
+        // skip the listeners after it.
+        calls.clear();
+        failingBus.post(new ServerStoppingEvent(server));
+        failing.beforeStopServer(server);
+        context.assertValueEqual(
+                calls,
+                List.of("stopping"),
+                "A stopping listener that throws in ServerStoppingEvent leaves the others to run");
+
         calls.clear();
         failing.beforeStopServer(server);
         context.assertValueEqual(
