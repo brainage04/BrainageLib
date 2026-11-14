@@ -93,7 +93,8 @@ class PlayerIdCodecsTest {
         Codec<List<UUID>> copiedList = COPIED_UUID.listOf();
         JsonElement copied =
                 copiedList.encodeStart(JsonOps.INSTANCE, List.copyOf(players)).getOrThrow();
-        assertEquals(copied, written, "The set is written the way the mods write their guest lists");
+        assertEquals(
+                copied, written, "The set is written the way the mods write their guest lists");
         Set<UUID> read = PlayerIdCodecs.PLAYER_SET.parse(JsonOps.INSTANCE, written).getOrThrow();
         assertEquals(List.of(SECOND, FIRST), List.copyOf(read));
     }
