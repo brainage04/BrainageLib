@@ -211,6 +211,16 @@ DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
 });
 ```
 
+## Connected blocks
+
+`io.github.brainage04.brainagelib.blocks.ConnectedBlocks` finds the blocks connected to one block, for a vein miner or a tree feller. `find(origin, limit, adjacency, member)` walks breadth-first from `origin` through the neighbours `member` accepts and returns up to `limit` of them, nearest first, `origin` left out. `Adjacency` says which neighbours count: `FACES` (6), `FACES_EDGES` (18) or `FACES_EDGES_CORNERS` (26). Neighbours are visited in one fixed order (x, then y, then z offsets from -1 to 1), so a limit always cuts the same far end off, and `member` is asked about each position once. `member` reads the world itself; `ConnectedBlocks.loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk. Use one `loaded` predicate per walk: it remembers the last chunk it read.
+
+```java
+List<BlockPos> vein =
+        ConnectedBlocks.find(origin, 63, Adjacency.FACES_EDGES_CORNERS,
+                ConnectedBlocks.loaded(level, state -> state.is(Blocks.IRON_ORE)));
+```
+
 ## GameTest support
 
 `io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
