@@ -74,7 +74,7 @@ public final class NeoForgeServerPlatform implements ServerPlatform {
         bus.addListener(
                 (ServerStoppingEvent event) -> {
                     stoppingPostedFor = event.getServer();
-                    listener.accept(event.getServer());
+                    runStoppingListener(listener, event.getServer());
                 });
     }
 
@@ -91,16 +91,22 @@ public final class NeoForgeServerPlatform implements ServerPlatform {
         // runServer's finally reaches on every path.
         if (stoppingPostedFor != server) {
             for (Consumer<MinecraftServer> listener : stoppingListeners) {
-                // Thrown from here, the exception would leave stopServer before it saves the levels
-                // and unlocks the world (dec/server-26.3 MinecraftServer.java:620-675).
-                try {
-                    listener.accept(server);
-                } catch (RuntimeException exception) {
-                    BrainageLib.LOGGER.error("A server stopping listener failed", exception);
-                }
+                runStoppingListener(listener, server);
             }
         }
         stoppingPostedFor = null;
+    }
+
+    // An exception that got out would skip the listeners after it: the bus rethrows it, which
+    // turns a normal stop into a crash, and at the head of stopServer it would also skip saving
+    // the levels and unlocking the world (dec/server-26.3 MinecraftServer.java:620-675).
+    private static void runStoppingListener(
+            Consumer<MinecraftServer> listener, MinecraftServer server) {
+        try {
+            listener.accept(server);
+        } catch (RuntimeException exception) {
+            BrainageLib.LOGGER.error("A server stopping listener failed", exception);
+        }
     }
 
     @Override

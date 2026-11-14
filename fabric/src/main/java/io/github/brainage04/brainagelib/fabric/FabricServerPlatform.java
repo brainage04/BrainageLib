@@ -1,5 +1,6 @@
 package io.github.brainage04.brainagelib.fabric;
 
+import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.platform.ServerPlatform;
 import java.nio.file.Path;
 import java.util.function.Consumer;
@@ -40,7 +41,18 @@ public final class FabricServerPlatform implements ServerPlatform {
 
     @Override
     public void onServerStopping(Consumer<MinecraftServer> listener) {
-        ServerLifecycleEvents.SERVER_STOPPING.register(listener::accept);
+        // SERVER_STOPPING runs at the head of stopServer, and its invoker does not catch, so an
+        // exception that got out would skip the listeners after it, saving the levels and unlocking
+        // the world (fabric-lifecycle-events-v1 4.1.9 MinecraftServerMixin.beforeShutdownServer,
+        // dec/server-26.3 MinecraftServer.java:620-675).
+        ServerLifecycleEvents.SERVER_STOPPING.register(
+                server -> {
+                    try {
+                        listener.accept(server);
+                    } catch (RuntimeException exception) {
+                        BrainageLib.LOGGER.error("A server stopping listener failed", exception);
+                    }
+                });
     }
 
     @Override
