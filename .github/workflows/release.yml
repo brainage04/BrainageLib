@@ -16,6 +16,7 @@ jobs:
     with:
       additional_artifact_pattern: brainagelib-neoforge-*.jar
       resolve_release_notes_with_gradle: false
+      check_curseforge_dependencies: ${{ vars.CURSEFORGE_PROJECT_ID != '' }}
     secrets:
       release_token: ${{ secrets.GITHUB_TOKEN }}
 
