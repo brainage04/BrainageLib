@@ -182,6 +182,8 @@ BrainageLib logs load problems, refused saves and write failures.
 
 Checks that belong to the mod stay there, for example refusing to share a home that does not exist. Use the list from the server thread.
 
+The mod's codec keeps the mod's save format, so files saved before the mod used the list still load, and converts at the boundary. `load` takes any collection of guests, so a decoded list goes straight in, but `snapshot()` returns sets, so a codec that saves lists copies each set into a list. A format nested by owner and then by name, such as `owner -> home name -> guests`, regroups the list's `Map<Home, Set<UUID>>` into the nested map when saving and flattens it into `Home` keys when loading.
+
 ## Confirmation windows
 
 `ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
