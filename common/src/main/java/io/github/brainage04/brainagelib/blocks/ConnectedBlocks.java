@@ -78,7 +78,8 @@ public final class ConnectedBlocks {
      * A {@link #find} member that accepts a position whose block {@code state} accepts, read only
      * from a chunk already loaded: a position in a chunk that is not, or outside the build height,
      * is no member, and no chunk is loaded for it. It remembers the last chunk it read, so use it
-     * for one walk only.
+     * for one walk only. Call it on the server thread: getChunkNow returns null elsewhere
+     * (ServerChunkCache.java:176-178), so the walk would find nothing.
      */
     public static Predicate<BlockPos> loaded(ServerLevel level, Predicate<BlockState> state) {
         return new Predicate<>() {

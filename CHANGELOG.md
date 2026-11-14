@@ -2,7 +2,7 @@
 
 ## 2.1.0
 
-BrainageLib 2.1.0 adds one API and changes nothing players see. The drop changes listed under 2.0.0 (decorations, armour stands, vehicles and credited kills) shipped in 2.0.0; 2.1.0 adds nothing to them.
+BrainageLib 2.1.0 adds one API and changes nothing players see.
 
 ### New API
 
