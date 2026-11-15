@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.fabric;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -25,11 +26,25 @@ class FabricServerPlatformTest {
         FabricServerPlatform platform = new FabricServerPlatform();
         platform.onServerStarting(server -> CALLS.add("starting"));
         platform.onServerStarted(server -> CALLS.add("started"));
+        // Fabric's invoker runs the listeners in a plain loop at the head of stopServer, so a
+        // throw that got out would also skip the listeners after it and the save.
+        platform.onServerStopping(
+                server -> {
+                    throw new IllegalStateException("A stopping listener failed on purpose");
+                });
+        // A Kotlin listener or @SneakyThrows can throw a checked exception through a Consumer.
+        platform.onServerStopping(
+                server -> sneakyThrow(new IOException("A stopping listener failed on purpose")));
         platform.onServerStopping(server -> CALLS.add("stopping"));
         platform.onServerStopped(server -> CALLS.add("stopped"));
         platform.onEndServerTick(server -> CALLS.add("end tick"));
         platform.onRegisterCommands(
                 (dispatcher, context, selection) -> CALLS.add("commands " + selection));
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable throwable) throws T {
+        throw (T) throwable;
     }
 
     @BeforeEach
@@ -50,7 +65,7 @@ class FabricServerPlatformTest {
     }
 
     @Test
-    void stoppingListensToServerStopping() {
+    void stoppingListensToServerStoppingPastAListenerThatThrows() {
         ServerLifecycleEvents.SERVER_STOPPING.invoker().onServerStopping(null);
         assertEquals(List.of("stopping"), CALLS);
     }
