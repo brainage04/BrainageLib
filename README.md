@@ -1,38 +1,33 @@
 # BrainageLib
 
-BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It provides consistent command feedback, one combined first-join help surface, a shared drop capture engine and a connected-block search for brainage04's server mods. Vanilla clients do not install it.
-
-On a player's first join to a world, BrainageLib sends one combined notice naming every registered server mod. The acknowledgement is stored by player UUID in `brainagelib-first-join-help.json` in that world's folder, so it persists across restarts and remains independent between worlds.
+BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It provides shared code for a lot of my mods, including a drop capture engine, connected block searching, and much more!
 
 ## Features
 
-- Messages receive a grey mod-name prefix and a consistent yellow, green, or red body.
-- Combined player help and operator configuration command lists for registered mods.
-- One first-join notice instead of a separate message from each mod.
-- Drop capture shared by Telekinesis and Skyport Minigames: drops and experience from blocks a player breaks, mobs the game credits them with killing, item frames, glow item frames, paintings, cushions and armour stands they break, boats and minecarts they break with their contents, explosions they cause (including beds and respawn anchors they use) and the decaying leaves of trees they fell go to that player, as the installed mods' rules decide. On its own BrainageLib delivers nothing.
-- Connected-block search shared by VeinMiner and Skyport Minigames: the blocks connected to a broken block, nearest first, read from loaded chunks only.
+- A drop capture engine (for inserting block and entity drops into the player inventory instead of dropping them on the ground - used in both Telekinesis and SkyportMinigames)
+- Connected block searching (for detecting veins of connectd blocks - used in both VeinMiner and SkyportMinigames)
+- Consistent command feedback - messages receive a grey mod-name prefix and a consistent coloured body (typically red for error messages, green for success messages, and yellow for warning or neutral messages)
+- Combining help messages for each mod that uses this library into one message instead of clogging up the chat with a separate message from each mod
+- Combining player help and operator config command lists for registered mods
 
-## Getting started
+## Dependencies
 
 - Minecraft 26.3
-- Fabric Loader 0.19.5 or newer with Fabric API, or NeoForge 26.3.0.99 or newer
-- Java 25 or newer
-- Install BrainageLib on the server alongside the mods that require it.
+- Fabric Loader >=0.19.5 w/ Fabric API, or NeoForge >=26.3.0.99
+- Java >=25
 
 ## Commands
 
-- `/servermods` or `/servermods help` - lists registered mods, their descriptions, and player help commands.
-- `/servermods config` - lists operator configuration commands; requires operator permission level 2.
+- `/servermods` or `/servermods help` - lists registered mods, descriptions, and player help commands
+- `/servermods config` - lists operator configuration commands (requires operator permission level 2)
 
-## Configuration
+## Config
 
-No configuration yet.
+No config yet.
 
 ## Compatibility
 
-Vanilla clients do not install it. Use the Fabric or NeoForge JAR for your server's loader. A client that installs a mod requiring BrainageLib, such as Skyport Minigames, installs it too, so its Modrinth listing marks it required on the client as well.
-
-Telekinesis before 1.2.0 carries its own drop capture on the same game hooks; BrainageLib 2.0.0 refuses to load beside it (Fabric `breaks`, NeoForge `incompatible`), so update Telekinesis together with BrainageLib.
+Note: The drop capture for Telekinesis <1.2.0 uses the same game hooks as BrainageLib 2.0.0 and as a result refuses to load beside it (Fabric reports it as `breaks`, NeoForge reports it as `incompatible`). Update Telekinesis and BrainageLib at the same time to avoid this issue.
 
 ## Documentation
 

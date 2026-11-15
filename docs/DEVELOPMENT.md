@@ -2,20 +2,16 @@
 
 ## Dependency
 
-BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainagelib` for Fabric and `io.github.brainage04:brainagelib-neoforge` for NeoForge. The test-only `io.github.brainage04:brainagelib-gametest` is not on Maven Central, and consumers build it from a sibling checkout (see [GameTest support](#gametest-support)).
+BrainageLib is on Maven Central from 1.3.0 onward.
+
+Note: The test-only `io.github.brainage04:brainagelib-gametest` is not on Maven Central, and consumers build it from a sibling checkout (see [GameTest support](#gametest-support)).
+
+### Fabric: `io.github.brainage04:brainagelib`
 
 ```groovy
 dependencies {
     implementation "io.github.brainage04:brainagelib:2.1.0"
     productionRuntimeMods "io.github.brainage04:brainagelib:2.1.0"
-}
-```
-
-For NeoForge, use the loader-specific artifact:
-
-```groovy
-dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
 }
 ```
 
@@ -29,7 +25,15 @@ Declare the runtime requirement in `fabric.mod.json`, capped below the next majo
 }
 ```
 
-For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml` with the same cap:
+### NeoForge:`io.github.brainage04:brainagelib-neoforge`
+
+```groovy
+dependencies {
+    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
+}
+```
+
+Declare `brainagelib` as a required dependency in `META-INF/neoforge.mods.toml` with the same cap:
 
 ```toml
 [[dependencies.examplemod]]
@@ -40,9 +44,9 @@ ordering="AFTER"
 side="BOTH"
 ```
 
-Use `side="BOTH"`: a client that installs a mod requiring BrainageLib installs BrainageLib too (see the README's Compatibility section), so NeoForge also checks the dependency on a client and shows its missing-dependency screen there.
+A major release may remove public API (2.0.0 did) which is why the cap is set to the next major release. With the cap, the loader refuses to start a mod next to a BrainageLib it was not built for, instead of the mod failing with `NoSuchMethodError` during play.
 
-A major release may remove public API, as 2.0.0 did. With the cap, the loader refuses to start a mod next to a BrainageLib it was not built for, instead of the mod failing with `NoSuchMethodError` during play.
+### Universal
 
 For workspace development, MinecraftModConventions' `workspaceDependencies` component resolves BrainageLib from a sibling checkout's `build/local-repo` (written by `./gradlew --no-daemon publishAllPublicationsToLocalRepository` in `../BrainageLib`):
 
@@ -70,9 +74,7 @@ FEEDBACK.failure(source, "Configuration could not be saved.");
 FEEDBACK.click(player);
 ```
 
-Messages receive a grey `[Example Mod]` prefix and a consistent yellow, green, or red body. The API accepts either components or formatted strings and can send the standard UI click sound directly to a player.
-
-Command-source failures keep the same grey prefix as player errors.
+Messages receive a grey `[Example Mod]` prefix and a consistent coloured body (red for error messages, yellow for warning/neutral, green for success). The API accepts either components or formatted strings and can send the standard UI click sound directly to a player. Command-source failures keep the same grey prefix as player errors.
 
 A player-only command binds its player with `requirePlayer`, which sends
 `ModFeedback.PLAYERS_ONLY_MESSAGE` to any other source and plays the click sound for a player:
@@ -96,7 +98,7 @@ ServerModHelpRegistry.register(new ServerModHelpEntry(
 ));
 ```
 
-Use `ServerModHelpEntry.playerOnly(...)` when the mod has no operator configuration command.
+Use `ServerModHelpEntry.playerOnly(...)` when the mod has no operator config command.
 
 `HelpPage` prints a mod's own `/<mod>` page in the same style and registers the root and its `help` child together:
 
@@ -108,20 +110,20 @@ HelpPage.create(FEEDBACK, "example")
         .register(dispatcher);
 ```
 
-The first line defaults to `Player commands:`, and `heading(...)` replaces it. `line(...)` throws `IllegalArgumentException` for a blank message, so a bad page fails when the mod registers it. `show(source)` prints the page wherever it is called and returns 1.
+The first line defaults to `Player commands:`, and `heading(...)` replaces it. `line(...)` throws `IllegalArgumentException` for a blank message so that a bad page fails when the mod registers it. `show(source)` prints the page wherever it is called and returns 1.
 
-Brigadier merges the page's `/example` root with the mod's own `/example` root. The root registered first keeps its `requires`, and the root registered last decides what `/example` alone runs. Put permission checks on the mod's subcommands, not on its `/example` root, so that they hold in either registration order.
+Brigadier merges the page's `/example` root with the mod's own `/example` root. The root registered first keeps its `requires`, and the root registered last decides what `/example` alone runs. Put permission checks on the mod's subcommands (not on its `/example` root) so that they hold in either registration order.
 
 ## Saved files
 
-`io.github.brainage04.brainagelib.storage` holds the shared persistence pieces. Each mod keeps its own file format, validation and messages.
+`io.github.brainage04.brainagelib.storage` holds the shared persistence code. Each mod keeps its own file format, validation and messages.
 
-- `AtomicFiles.writeString(path, text)` writes `<name>.tmp` next to the target and moves it over the target atomically, with a plain replacing move where the file system has no atomic move. A failed write deletes the temporary file and leaves the target unchanged.
+- `AtomicFiles.writeString(path, text)` writes `<name>.tmp` next to the target and moves it over the target atomically if possible (plain replacing move is used if atomic move is not possible), and a failed write deletes the temporary file and leaves the target unchanged.
 - `JsonFile<T>` reads and writes one JSON document. `load()` returns `Missing`, `Loaded(value)`, `Invalid(exception)` (not JSON, JSON `null`, or rejected by the decoder) or `IoError(exception)`; `lastLoad()` returns the most recent result. `save(value)` returns `SAVED`, `FAILED` or `KEPT_ORIGINAL`.
-- `ConfigFile<T>` is a mod's own config: one document, one default value and the value in effect, without repeating the file setup.
+- `ConfigFile<T>` is a mod's own config - one document, one default value and the value in effect.
 - `WorldPlayerStore<P>` keeps UUID-keyed player preferences in a world-folder file shaped `{"schemaVersion": N, "players": {"<uuid>": {...}}}`. Call `load(server)` when the server starts (a missing file is created empty) and `close()` when it stops.
 
-A file that failed to load is never overwritten by default (`FailedLoadPolicy.KEEP_ORIGINAL`): changes stay in memory for the session, `save` returns `KEPT_ORIGINAL`, and the mod tells the player or console that the change was not saved. A later successful load allows saves again. Choose `ALLOW_OVERWRITE` only for files that are safe to replace.
+A file that failed to load is never overwritten by default (`FailedLoadPolicy.KEEP_ORIGINAL`) - changes stay in memory for the session, `save` returns `KEPT_ORIGINAL`, and the mod tells the player or console that the change was not saved. A later successful load allows saves again. Choose `ALLOW_OVERWRITE` only for files that are safe to replace.
 
 ```java
 private static final WorldPlayerStore<Preference> PLAYERS = WorldPlayerStore
@@ -133,7 +135,7 @@ private static final WorldPlayerStore<Preference> PLAYERS = WorldPlayerStore
 boolean saved = PLAYERS.save().saved();
 ```
 
-`ConfigFile<T>` takes the file, the Gson, the type and the default value; a missing file is created by saving the default value, so the default is the whole document. The mod changes the value and calls `save()`:
+`ConfigFile<T>` takes the file, the Gson, the type and the default value - a missing file is created by saving the default value, so the default is the whole document. The mod changes the value and calls `save()`:
 
 ```java
 private static ConfigFile<ExampleConfig> file;
@@ -173,32 +175,34 @@ BrainageLib logs load problems, refused saves and write failures.
 
 ## Confirmation windows
 
-`ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
+`ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks.
+
+Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
 
 ## Drop capture
 
 `io.github.brainage04.brainagelib.drops` sends drops and experience to the player responsible for them, for every mod that installs a policy. BrainageLib's own mixins open a capture scope for:
 
-- a block a player breaks (`ServerPlayerGameMode.destroyBlock`, and `Block.dropResources` with a player as breaker for mods that call `playerDestroy` or `Level.destroyBlock` themselves), including a broken container's contents and the block's experience;
+- a block a player breaks (`ServerPlayerGameMode.destroyBlock`, and `Block.dropResources` with a player as breaker for mods that call `playerDestroy` or `Level.destroyBlock` themselves), including a broken container's contents and the block's experience
 - a mob's death loot and experience, for the player vanilla credits with the kill, which is what
   `LivingEntity#getKillCredit()` returns: the player who hurt it within the game's 100-tick memory
   (melee, an owned projectile, potion or firework, thorns from armour they wear, a tamed wolf, TNT
   they lit). A hit inside the 100 ticks keeps the credit for a death from anything else, such as a
   fall, lava, the void or another mob's blow; once the game has forgotten the hit, or credits a
   mob instead, the loot and experience stay in the world. A killed player's own drops always stay
-  in the world;
+  in the world
 - the drops of an item frame, glow item frame, painting, cushion or armour stand a player breaks:
   the decoration's own item and the item it held, or the stand and its equipment. A blast the
   player caused counts too, through the player the blast names. A blast that names nobody (a
   creeper's), a fire and a decoration that lost its support leave the drops in the world, and a
-  creative break drops nothing at all;
+  creative break drops nothing at all
 - a boat, raft or minecart a player breaks, with a chest boat's, chest minecart's or hopper
   minecart's contents. A furnace or TNT minecart has nothing else to hand over; a damage source
   that names no player (lava, a fire, a mob) leaves the item and contents in the world, and a
-  creative break discards the vehicle the way it always did;
-- the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
-- the ender dragon's death-animation experience, for its killer;
-- a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.
+  creative break discards the vehicle the way it always did
+- the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's)
+- the ender dragon's death-animation experience, for its killer
+- a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops
 
 Inside a scope, an item entity or experience about to spawn goes to the player instead. What fits goes into the inventory (with the `picked_up` statistic), the rest is moved to the player's feet. Experience repairs Mending items first. A dead player, or one in another dimension, gets nothing.
 
@@ -213,7 +217,9 @@ DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
 
 ## Connected blocks
 
-`io.github.brainage04.brainagelib.blocks.ConnectedBlocks` finds the blocks connected to one block, for a vein miner or a tree feller. `find(origin, limit, adjacency, member)` walks breadth-first from `origin` through the neighbours `member` accepts and returns up to `limit` of them, nearest first, `origin` left out. `Adjacency` says which neighbours count: `FACES` (6), `FACES_EDGES` (18) or `FACES_EDGES_CORNERS` (26). Neighbours are visited in one fixed order (x, then y, then z offsets from -1 to 1), so a limit always cuts the same far end off, and `member` is asked about each position once. `member` reads the world itself. `ConnectedBlocks.loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk. Call it on the server thread: off it, `getChunkNow` returns null and the walk finds nothing. Use one `loaded` predicate per walk: it remembers the last chunk it read.
+`io.github.brainage04.brainagelib.blocks.ConnectedBlocks` finds the blocks connected to one block, for a vein miner or a tree feller.
+
+`find(origin, limit, adjacency, member)` walks breadth-first from `origin` through the neighbours `member` accepts and returns up to `limit` of them, nearest first, `origin` left out. `Adjacency` says which neighbours count: `FACES` (6), `FACES_EDGES` (18) or `FACES_EDGES_CORNERS` (26). Neighbours are visited in one fixed order (x, then y, then z offsets from -1 to 1), so a limit always cuts the same far end off, and `member` is asked about each position once. `member` reads the world itself. `ConnectedBlocks.loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk. Call it on the server thread: off it, `getChunkNow` returns null and the walk finds nothing. Use one `loaded` predicate per walk: it remembers the last chunk it read.
 
 ```java
 List<BlockPos> vein =
@@ -223,7 +229,7 @@ List<BlockPos> vein =
 
 ## GameTest support
 
-`io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
+`io.github.brainage04:brainagelib-gametest` is a test-only artifact (never ship it or depend on it from main code). It is a small mod on both loaders, so GameTest runs load it next to the test mod:
 
 ```groovy
 workspaceDependencies {
