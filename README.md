@@ -21,10 +21,6 @@ BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It 
 - `/servermods` or `/servermods help` - lists registered mods, descriptions, and player help commands
 - `/servermods config` - lists operator configuration commands (requires operator permission level 2)
 
-## Config
-
-No config yet.
-
 ## Compatibility
 
 Note: The drop capture for Telekinesis <1.2.0 uses the same game hooks as BrainageLib 2.0.0 and as a result refuses to load beside it (Fabric reports it as `breaks`, NeoForge reports it as `incompatible`). Update Telekinesis and BrainageLib at the same time to avoid this issue.
