@@ -255,6 +255,28 @@ class NameLookupTest {
         assertEquals(profile, answer.get().profile(), "the player is told which account was found");
     }
 
+    /** Exactly at the bound the answer is still acted on, so the bound is not "30 s or more". */
+    @Test
+    void aFoundNameExactlyAtTheBoundIsActedOn() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        long[] now = {0};
+        LongSupplier clock = () -> now[0];
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile),
+                        queued::set,
+                        Runnable::run,
+                        () -> true,
+                        LOGGER,
+                        clock);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        now[0] = Duration.ofSeconds(30).toNanos();
+        queued.get().run();
+        assertEquals(NameLookup.Status.FOUND, answer.get().status());
+    }
+
     /** An answer inside the bound is acted on, so the bound is not simply "always stale". */
     @Test
     void aFoundNameInsideTheBoundIsActedOn() {

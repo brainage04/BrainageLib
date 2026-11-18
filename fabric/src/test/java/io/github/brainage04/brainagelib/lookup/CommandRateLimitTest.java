@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.lookup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -65,11 +66,11 @@ class CommandRateLimitTest {
     }
 
     /**
-     * Two allowances of one server are charged apart, so a command that prints a candidate list
-     * cannot spend the click its own buttons need, and the list is still bounded.
+     * Two allowances are charged apart, so a command that prints a candidate list cannot spend the
+     * click its own buttons need, and the list is still bounded.
      */
     @Test
-    void twoAllowancesOfOneServerAreChargedApart() {
+    void twoAllowancesAreChargedApart() {
         long[] now = {0};
         CommandRateLimit share = new CommandRateLimit(() -> now[0]);
         CommandRateLimit listing = new CommandRateLimit(() -> now[0]);
@@ -92,6 +93,26 @@ class CommandRateLimitTest {
     void aBlankNameIsRefused() {
         assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, ""));
         assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, " "));
+    }
+
+    /** Clearing a server frees every name it was asked for, and only that server's. */
+    @Test
+    void clearAllFreesEveryNameOfAServer() {
+        CommandRateLimit main = CommandRateLimit.of(null);
+        CommandRateLimit listing = CommandRateLimit.of(null, "listing");
+        UUID player = UUID.randomUUID();
+        try {
+            assertEquals(0, main.refuse(player));
+            assertEquals(0, listing.refuse(player));
+            // The real clock, so the wait is a second less however long the test took.
+            assertTrue(main.refuse(player) > 0);
+            assertTrue(listing.refuse(player) > 0);
+            CommandRateLimit.clearAll(null);
+            assertEquals(0, main.refuse(player), "the main allowance must be freed");
+            assertEquals(0, listing.refuse(player), "the named allowance must be freed");
+        } finally {
+            CommandRateLimit.clearAll(null);
+        }
     }
 
     @Test

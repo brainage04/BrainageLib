@@ -223,7 +223,7 @@ List<BlockPos> vein =
 
 ## Name lookup
 
-`io.github.brainage04.brainagelib.lookup.NameLookup` asks Mojang for the account behind a name the server has not cached, off the server thread. The server's own `nameToIdCache().get(name)` asks Mojang on the calling thread, so one unknown name in a command freezes every player for up to 5 s.
+`io.github.brainage04.brainagelib.lookup.NameLookup` asks Mojang for the account behind a name the server has not cached, off the server thread. The server's own `nameToIdCache().get(name)` asks Mojang on the calling thread, so one unknown name in a command freezes every player for up to 10 s (5 s to connect, 5 s to read).
 
 ```java
 NameLookup.of(server, "Example Mod name lookup", LOGGER)
@@ -243,9 +243,9 @@ NameLookup.of(server, "Example Mod name lookup", LOGGER)
                 });
 ```
 
-`of(server, threadName, logger)` gives the server's one lookup, so every mod on it shares one share of Mojang's limit: 100 requests per 2 minutes, half of Mojang's 200 per IP, charged on the lookup thread just before the request. The first caller's thread name and logger are the ones used. `lookup` answers on the server thread, and a name that cannot be a player name is answered `NOT_FOUND` without a request. A `FOUND` answer older than 30 s arrives as `STALE` with the profile, so the command can cache the name and ask the player to run it again. `install(server, lookup)` and `reset(server)` replace the server's lookup, which is how a GameTest stubs Mojang.
+`of(server, threadName, logger)` gives the server's one lookup, so every mod on it shares one share of Mojang's limit: 100 requests per 2 minutes, half of Mojang's 200 per IP, charged on the lookup thread just before the request. The first caller's thread name and logger are the ones used. `lookup` answers on the server thread, except a name that cannot be a player name, which is answered `NOT_FOUND` at once on the calling thread without a request. A `FOUND` answer older than 30 s arrives as `STALE` with the profile, so the command can cache the name and ask the player to run it again. `install(server, lookup)` and `reset(server)` replace the server's lookup, which is how a GameTest stubs Mojang.
 
-`io.github.brainage04.brainagelib.lookup.CommandRateLimit` bounds how often one player may use a command: once a second, 20 a minute, 400 an hour. `of(server)` is the server's main allowance; `of(server, name)` is a further one kept apart from it, for a command that also prints a candidate list, so the list cannot spend the click its own buttons need. The name is shared by every mod on the server, so prefix it with the mod id (`"example listing"`); a blank name is refused. `refuse(player)` returns the wait in nanoseconds, or zero when the use is allowed and counted, and `describe(nanos)` words it for a message. A refused use is not counted.
+`io.github.brainage04.brainagelib.lookup.CommandRateLimit` bounds how often one player may use a command: once a second, 20 a minute, 400 an hour. `of(server)` is the server's main allowance; `of(server, name)` is a further one kept apart from it, for a command that also prints a candidate list, so the list cannot spend the click its own buttons need. The name is shared by every mod on the server, so prefix it with the mod id (`"example listing"`); a blank name is refused. `refuse(player)` returns the wait in nanoseconds, or zero when the use is allowed and counted, and `describe(nanos)` words it for a message. A refused use is not counted. `clear()` forgets one allowance's uses and `clearAll(server)` every allowance of a server; both are for tests, since a reload must not hand a player a fresh allowance.
 
 ```java
 long wait = CommandRateLimit.of(server).refuse(player.getUUID());

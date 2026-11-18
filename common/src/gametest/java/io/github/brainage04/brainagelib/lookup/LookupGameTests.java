@@ -18,7 +18,7 @@ public final class LookupGameTests {
      */
     public static void aServerKeepsOneLookupAndATestCanReplaceIt(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
-        NameLookup first = NameLookup.of(server, "BrainageLib test lookup", BrainageLib.LOGGER);
+        NameLookup first = NameLookup.of(server, "BrainageLib name lookup", BrainageLib.LOGGER);
         helper.assertTrue(
                 first == NameLookup.of(server, "another name", BrainageLib.LOGGER),
                 "A server must keep one lookup, so its callers share one share of the limit");
@@ -26,13 +26,13 @@ public final class LookupGameTests {
         NameLookup.install(server, stub);
         try {
             helper.assertTrue(
-                    stub == NameLookup.of(server, "BrainageLib test lookup", BrainageLib.LOGGER),
+                    stub == NameLookup.of(server, "BrainageLib name lookup", BrainageLib.LOGGER),
                     "An installed stub must be what the server's callers get");
         } finally {
             NameLookup.reset(server);
         }
         helper.assertTrue(
-                stub != NameLookup.of(server, "BrainageLib test lookup", BrainageLib.LOGGER),
+                stub != NameLookup.of(server, "BrainageLib name lookup", BrainageLib.LOGGER),
                 "A reset must drop the stub");
         helper.succeed();
     }
@@ -54,8 +54,9 @@ public final class LookupGameTests {
         AtomicReference<Thread> workerThread = new AtomicReference<>();
         AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
         AtomicReference<Thread> callbackThread = new AtomicReference<>();
-        NameLookup.install(
-                server,
+        // Its own lookup, not the server's: the tests of one batch tick interleaved, so a test that
+        // installed a stub here would race the one that checks the installed stub.
+        NameLookup lookup =
                 new NameLookup(
                         name -> {
                             workerThread.set(Thread.currentThread());
@@ -64,15 +65,14 @@ public final class LookupGameTests {
                         worker,
                         server::execute,
                         server::isSameThread,
-                        BrainageLib.LOGGER));
+                        BrainageLib.LOGGER);
         try {
-            NameLookup.of(server, "BrainageLib test lookup", BrainageLib.LOGGER)
-                    .lookup(
-                            "LookupGhost",
-                            delivered -> {
-                                callbackThread.set(Thread.currentThread());
-                                answer.set(delivered);
-                            });
+            lookup.lookup(
+                    "LookupGhost",
+                    delivered -> {
+                        callbackThread.set(Thread.currentThread());
+                        answer.set(delivered);
+                    });
             helper.runAfterDelay(
                     2,
                     () -> {
@@ -92,15 +92,14 @@ public final class LookupGameTests {
                         helper.assertTrue(
                                 profile.equals(answer.get().profile()),
                                 "The answer must name the account the stub found");
-                        worker.shutdownNow();
                         helper.succeed();
                     });
         } finally {
-            NameLookup.reset(server);
+            worker.shutdownNow();
         }
     }
 
-    /** A server keeps one allowance per name, and clearing it frees every name at once. */
+    /** A server keeps one allowance per name, and a named one is charged apart from the main. */
     public static void aServersAllowancesAreSharedAndClearedTogether(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         CommandRateLimit share = CommandRateLimit.of(server);
@@ -121,13 +120,16 @@ public final class LookupGameTests {
             helper.assertTrue(
                     listing.refuse(player) == 0,
                     "The main command's use must not spend the named allowance");
-            CommandRateLimit.clearAll(server);
+            share.clear();
             helper.assertTrue(
                     share.refuse(player) == 0, "Clearing must free the main allowance");
+            listing.clear();
             helper.assertTrue(
                     listing.refuse(player) == 0, "Clearing must free the named allowance");
         } finally {
-            CommandRateLimit.clearAll(server);
+            // Only this test's two allowances: clearAll would wipe a consumer mod's as well.
+            share.clear();
+            listing.clear();
         }
         helper.succeed();
     }
