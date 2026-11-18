@@ -119,8 +119,8 @@ public final class BrainageLibNeoForgeGameTests {
                             "an_answer_is_delivered_on_the_server_thread",
                             LookupGameTests::anAnswerIsDeliveredOnTheServerThread),
                     new TestFunction(
-                            "a_servers_allowances_are_shared_and_cleared_together",
-                            LookupGameTests::aServersAllowancesAreSharedAndClearedTogether));
+                            "a_servers_allowances_are_shared_and_charged_apart",
+                            LookupGameTests::aServersAllowancesAreSharedAndChargedApart));
 
     private BrainageLibNeoForgeGameTests() {}
 

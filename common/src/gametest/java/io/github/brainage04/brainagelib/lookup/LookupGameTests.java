@@ -24,10 +24,17 @@ public final class LookupGameTests {
                 "A server must keep one lookup, so its callers share one share of the limit");
         NameLookup stub = stub(server, name -> notFound());
         NameLookup.install(server, stub);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
         try {
+            NameLookup installed =
+                    NameLookup.of(server, "BrainageLib name lookup", BrainageLib.LOGGER);
             helper.assertTrue(
-                    stub == NameLookup.of(server, "BrainageLib name lookup", BrainageLib.LOGGER),
-                    "An installed stub must be what the server's callers get");
+                    stub == installed, "An installed stub must be what the server's callers get");
+            installed.lookup("LookupGhost", answer::set);
+            helper.assertTrue(
+                    answer.get() != null && answer.get().status() == NameLookup.Status.NOT_FOUND,
+                    "A lookup through the server's lookup must be the stub's answer, got "
+                            + answer.get());
         } finally {
             NameLookup.reset(server);
         }
@@ -66,16 +73,18 @@ public final class LookupGameTests {
                         server::execute,
                         server::isSameThread,
                         BrainageLib.LOGGER);
-        try {
-            lookup.lookup(
-                    "LookupGhost",
-                    delivered -> {
-                        callbackThread.set(Thread.currentThread());
-                        answer.set(delivered);
-                    });
-            helper.runAfterDelay(
-                    2,
-                    () -> {
+        lookup.lookup(
+                "LookupGhost",
+                delivered -> {
+                    callbackThread.set(Thread.currentThread());
+                    answer.set(delivered);
+                });
+        helper.runAfterDelay(
+                2,
+                () -> {
+                    // Shut down here, not when this method returns: shutdownNow drops a task that
+                    // has not started, and the lookup is still queued at that point.
+                    try {
                         helper.assertTrue(answer.get() != null, "The answer must arrive");
                         helper.assertTrue(
                                 workerThread.get() != null
@@ -92,15 +101,15 @@ public final class LookupGameTests {
                         helper.assertTrue(
                                 profile.equals(answer.get().profile()),
                                 "The answer must name the account the stub found");
-                        helper.succeed();
-                    });
-        } finally {
-            worker.shutdownNow();
-        }
+                    } finally {
+                        worker.shutdownNow();
+                    }
+                    helper.succeed();
+                });
     }
 
     /** A server keeps one allowance per name, and a named one is charged apart from the main. */
-    public static void aServersAllowancesAreSharedAndClearedTogether(GameTestHelper helper) {
+    public static void aServersAllowancesAreSharedAndChargedApart(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         CommandRateLimit share = CommandRateLimit.of(server);
         CommandRateLimit listing = CommandRateLimit.of(server, "listing");

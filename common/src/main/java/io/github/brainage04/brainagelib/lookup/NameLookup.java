@@ -213,8 +213,8 @@ public final class NameLookup {
 
     /**
      * Looks {@code name} up on the lookup thread and hands the answer to {@code callback} on the
-     * server thread. A name that cannot belong to any account is answered at once, on the calling
-     * thread, and never reaches the network. The server's share of Mojang's limit is taken on the lookup thread, just before
+     * server thread. A name that cannot belong to any account is answered at once, on the
+     * calling thread, and never reaches the network. The server's share of Mojang's limit is taken on the lookup thread, just before
      * the request, so the share counts requests actually sent in the window, not lookups still
      * waiting in the queue.
      */

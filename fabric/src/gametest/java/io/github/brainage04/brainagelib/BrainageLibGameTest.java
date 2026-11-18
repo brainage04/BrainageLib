@@ -171,7 +171,7 @@ public final class BrainageLibGameTest {
     }
 
     @GameTest
-    public void aServersAllowancesAreSharedAndClearedTogether(GameTestHelper context) {
-        LookupGameTests.aServersAllowancesAreSharedAndClearedTogether(context);
+    public void aServersAllowancesAreSharedAndChargedApart(GameTestHelper context) {
+        LookupGameTests.aServersAllowancesAreSharedAndChargedApart(context);
     }
 }

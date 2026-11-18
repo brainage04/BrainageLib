@@ -3,5 +3,5 @@
   "structure": "minecraftmodconventions:empty",
   "max_ticks": 20,
   "type": "minecraft:function",
-  "function": "brainagelib:a_servers_allowances_are_shared_and_cleared_together"
+  "function": "brainagelib:a_servers_allowances_are_shared_and_charged_apart"
 }

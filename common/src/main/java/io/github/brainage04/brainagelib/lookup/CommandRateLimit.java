@@ -44,7 +44,7 @@ public final class CommandRateLimit {
      * both pass {@code "listing"} would share one allowance.
      */
     public static CommandRateLimit of(MinecraftServer server, String name) {
-        if (name.isBlank()) {
+        if (name == null || name.isBlank()) {
             throw new IllegalArgumentException(
                     "A named allowance needs a name; use of(server) for the main one");
         }
