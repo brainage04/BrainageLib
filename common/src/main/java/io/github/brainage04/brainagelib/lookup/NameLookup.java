@@ -101,7 +101,11 @@ public final class NameLookup {
         this(repository, worker, serverThread, onServerThread, logger, System::nanoTime);
     }
 
-    NameLookup(
+    /**
+     * A lookup that reads time from {@code clock}, so a test can move it past the 30 s bound or the
+     * server's window without waiting.
+     */
+    public NameLookup(
             Repository repository,
             Executor worker,
             Executor serverThread,
@@ -122,9 +126,11 @@ public final class NameLookup {
      * threadName} and {@code logger} are the ones used.
      */
     public static NameLookup of(MinecraftServer server, String threadName, Logger logger) {
+        // Created before the map's lock is taken, so no thread pool is built while it is held.
+        ExecutorService worker = lookupThread(threadName);
         synchronized (INSTANCES) {
             return INSTANCES.computeIfAbsent(
-                    server, ignored -> forServer(server, threadName, logger));
+                    server, ignored -> forServer(server, worker, logger));
         }
     }
 
@@ -134,7 +140,7 @@ public final class NameLookup {
      * every integrated server alive.
      */
     private static NameLookup forServer(
-            MinecraftServer server, String threadName, Logger logger) {
+            MinecraftServer server, ExecutorService worker, Logger logger) {
         WeakReference<MinecraftServer> reference = new WeakReference<>(server);
         return new NameLookup(
                 name -> {
@@ -143,7 +149,7 @@ public final class NameLookup {
                             ? new Answer(Status.FAILED, null)
                             : find(current.services().profileRepository(), name);
                 },
-                lookupThread(threadName),
+                worker,
                 runnable -> {
                     MinecraftServer current = reference.get();
                     if (current == null) return;
@@ -182,7 +188,7 @@ public final class NameLookup {
      * not know and with an {@code AuthenticationException} after three attempts for a request that
      * failed.
      */
-    static Answer find(GameProfileRepository repository, String name) {
+    public static Answer find(GameProfileRepository repository, String name) {
         Answer[] answer = new Answer[1];
         repository.findProfilesByNames(
                 new String[] {name},
@@ -207,8 +213,8 @@ public final class NameLookup {
 
     /**
      * Looks {@code name} up on the lookup thread and hands the answer to {@code callback} on the
-     * server thread. A name that cannot belong to any account is answered at once and never reaches
-     * the network. The server's share of Mojang's limit is taken on the lookup thread, just before
+     * server thread. A name that cannot belong to any account is answered at once, on the calling
+     * thread, and never reaches the network. The server's share of Mojang's limit is taken on the lookup thread, just before
      * the request, so the share counts requests actually sent in the window, not lookups still
      * waiting in the queue.
      */

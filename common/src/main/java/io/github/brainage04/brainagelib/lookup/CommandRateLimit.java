@@ -32,15 +32,26 @@ public final class CommandRateLimit {
 
     /** The allowance a mod's main command uses. */
     public static CommandRateLimit of(MinecraftServer server) {
-        return of(server, "");
+        return allowance(server, "");
     }
 
     /**
      * A further allowance for {@code server}, kept apart from {@link #of} and from every other
      * name. A mod that charges one command and also prints a list of candidates gives the list its
      * own name, so the list cannot spend the click its own buttons need and is still bounded.
+     *
+     * <p>The name is shared by every mod on the server, so prefix it with the mod id: two mods that
+     * both pass {@code "listing"} would share one allowance.
      */
     public static CommandRateLimit of(MinecraftServer server, String name) {
+        if (name.isBlank()) {
+            throw new IllegalArgumentException(
+                    "A named allowance needs a name; use of(server) for the main one");
+        }
+        return allowance(server, name);
+    }
+
+    private static CommandRateLimit allowance(MinecraftServer server, String name) {
         synchronized (INSTANCES) {
             return INSTANCES.computeIfAbsent(server, ignored -> new HashMap<>())
                     .computeIfAbsent(name, ignored -> new CommandRateLimit(System::nanoTime));

@@ -1,6 +1,7 @@
 package io.github.brainage04.brainagelib.lookup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,13 @@ class CommandRateLimitTest {
         assertEquals("1 second", CommandRateLimit.describe(1));
         assertEquals("1 second", CommandRateLimit.describe(1_000_000_000L));
         assertEquals("2 seconds", CommandRateLimit.describe(1_500_000_000L));
+    }
+
+    /** A blank name would silently share the main allowance, so it is refused. */
+    @Test
+    void aBlankNameIsRefused() {
+        assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, ""));
+        assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, " "));
     }
 
     @Test
