@@ -1,5 +1,6 @@
 package io.github.brainage04.brainagelib;
 
+import io.github.brainage04.brainagelib.lookup.LookupGameTests;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -157,5 +158,20 @@ public final class BrainageLibGameTest {
     @GameTest
     public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
         ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
+    }
+
+    @GameTest
+    public void aServerKeepsOneLookupAndATestCanReplaceIt(GameTestHelper context) {
+        LookupGameTests.aServerKeepsOneLookupAndATestCanReplaceIt(context);
+    }
+
+    @GameTest
+    public void anAnswerIsDeliveredOnTheServerThread(GameTestHelper context) {
+        LookupGameTests.anAnswerIsDeliveredOnTheServerThread(context);
+    }
+
+    @GameTest
+    public void aServersAllowancesAreSharedAndClearedTogether(GameTestHelper context) {
+        LookupGameTests.aServersAllowancesAreSharedAndClearedTogether(context);
     }
 }

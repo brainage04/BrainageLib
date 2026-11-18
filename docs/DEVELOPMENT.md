@@ -6,8 +6,8 @@ BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainag
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:2.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:2.1.0"
+    implementation "io.github.brainage04:brainagelib:2.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:2.2.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:2.2.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`, capped below the next majo
 ```json
 {
   "depends": {
-    "brainagelib": ">=2.1.0 <3.0.0"
+    "brainagelib": ">=2.2.0 <3.0.0"
   }
 }
 ```
@@ -35,7 +35,7 @@ For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neofor
 [[dependencies.examplemod]]
 modId="brainagelib"
 type="required"
-versionRange="[2.1.0,3.0.0)"
+versionRange="[2.2.0,3.0.0)"
 ordering="AFTER"
 side="BOTH"
 ```
@@ -49,7 +49,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:2.1.0")
+        coordinate.set("io.github.brainage04:brainagelib:2.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -221,6 +221,40 @@ List<BlockPos> vein =
                 ConnectedBlocks.loaded(level, state -> state.is(Blocks.IRON_ORE)));
 ```
 
+## Name lookup
+
+`io.github.brainage04.brainagelib.lookup.NameLookup` asks Mojang for the account behind a name the server has not cached, off the server thread. The server's own `nameToIdCache().get(name)` asks Mojang on the calling thread, so one unknown name in a command freezes every player for up to 5 s.
+
+```java
+NameLookup.of(server, "Example Mod name lookup", LOGGER)
+        .lookup(
+                typed,
+                answer -> {
+                    switch (answer.status()) {
+                        case FOUND -> {
+                            server.services().nameToIdCache().add(answer.profile());
+                            apply(answer.profile());
+                        }
+                        case NOT_FOUND -> FEEDBACK.error(source, "Mojang has no player named '%s'.", typed);
+                        case FAILED -> FEEDBACK.error(source, "Could not look up '%s' right now.", typed);
+                        case TOO_MANY -> FEEDBACK.error(source, "Too many name lookups right now.");
+                        case STALE -> FEEDBACK.error(source, "Found '%s', but too late to act on. Run the command again.", typed);
+                    }
+                });
+```
+
+`of(server, threadName, logger)` gives the server's one lookup, so every mod on it shares one share of Mojang's limit: 100 requests per 2 minutes, half of Mojang's 200 per IP, charged on the lookup thread just before the request. The first caller's thread name and logger are the ones used. `lookup` answers on the server thread, and a name that cannot be a player name is answered `NOT_FOUND` without a request. A `FOUND` answer older than 30 s arrives as `STALE` with the profile, so the command can cache the name and ask the player to run it again. `install(server, lookup)` and `reset(server)` replace the server's lookup, which is how a GameTest stubs Mojang.
+
+`io.github.brainage04.brainagelib.lookup.CommandRateLimit` bounds how often one player may use a command: once a second, 20 a minute, 400 an hour. `of(server)` is the server's main allowance; `of(server, name)` is a further one kept apart from it, for a command that also prints a candidate list, so the list cannot spend the click its own buttons need. `refuse(player)` returns the wait in nanoseconds, or zero when the use is allowed and counted, and `describe(nanos)` words it for a message. A refused use is not counted.
+
+```java
+long wait = CommandRateLimit.of(server).refuse(player.getUUID());
+if (wait != 0) {
+    FEEDBACK.error(player, "You can use /example again in %s.", CommandRateLimit.describe(wait));
+    return 0;
+}
+```
+
 ## GameTest support
 
 `io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
@@ -228,14 +262,14 @@ List<BlockPos> vein =
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:2.1.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:2.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.1.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.2.0"
 }
 ```
 

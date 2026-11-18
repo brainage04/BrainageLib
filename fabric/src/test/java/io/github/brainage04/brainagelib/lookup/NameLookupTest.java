@@ -1,0 +1,333 @@
+package io.github.brainage04.brainagelib.lookup;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import com.mojang.authlib.GameProfileRepository;
+import com.mojang.authlib.ProfileLookupCallback;
+import com.mojang.authlib.exceptions.AuthenticationUnavailableException;
+import com.mojang.authlib.services.ProfileNotFoundException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.LongSupplier;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.server.players.NameAndId;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+class NameLookupTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger("NameLookupTest");
+
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
+    @Test
+    void aFoundNameReachesTheServerThread() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        NameLookup lookup = lookup(name -> found(profile));
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("steve", answer::set);
+        assertEquals(NameLookup.Status.FOUND, answer.get().status());
+        assertEquals(profile, answer.get().profile());
+    }
+
+    @Test
+    void anUnknownNameIsNotFoundAndNothingIsInvented() {
+        NameLookup lookup = lookup(name -> notFound());
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("HomesNeverSeen", answer::set);
+        assertEquals(NameLookup.Status.NOT_FOUND, answer.get().status());
+        assertNull(answer.get().profile());
+    }
+
+    @Test
+    void aRepositoryThatThrowsIsReportedAsFailed() {
+        NameLookup lookup =
+                lookup(
+                        name -> {
+                            throw new IllegalStateException("the service is down");
+                        });
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        assertEquals(NameLookup.Status.FAILED, answer.get().status());
+    }
+
+    /**
+     * A lookup is charged for the three requests a failed one can make, so the server's 100
+     * requests per window allow 33 lookups and the 34th is refused.
+     */
+    @Test
+    void theServerStopsAskingMojangAfterItsShareOfTheLimit() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        NameLookup lookup = lookup(name -> found(profile));
+        for (int use = 0; use < 33; use++) {
+            AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+            lookup.lookup("Steve", answer::set);
+            assertEquals(NameLookup.Status.FOUND, answer.get().status(), "lookup " + use);
+        }
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        assertEquals(NameLookup.Status.TOO_MANY, answer.get().status());
+    }
+
+    /**
+     * The share is a window, not a lifetime cap: once the oldest request is two minutes old its
+     * place is free again, so a server that has been up for hours can still look names up.
+     */
+    @Test
+    void theServersShareFreesUpOnceTheWindowHasPassed() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        long[] now = {0};
+        NameLookup lookup = lookup(name -> found(profile), () -> now[0]);
+        for (int use = 0; use < 33; use++) {
+            AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+            lookup.lookup("Steve", answer::set);
+            assertEquals(NameLookup.Status.FOUND, answer.get().status(), "lookup " + use);
+        }
+        AtomicReference<NameLookup.Answer> refused = new AtomicReference<>();
+        lookup.lookup("Steve", refused::set);
+        assertEquals(NameLookup.Status.TOO_MANY, refused.get().status());
+        // One nanosecond short of the window: the oldest request still holds its place.
+        now[0] = Duration.ofMinutes(2).toNanos() - 1;
+        AtomicReference<NameLookup.Answer> stillRefused = new AtomicReference<>();
+        lookup.lookup("Steve", stillRefused::set);
+        assertEquals(NameLookup.Status.TOO_MANY, stillRefused.get().status());
+        now[0] = Duration.ofMinutes(2).toNanos();
+        AtomicReference<NameLookup.Answer> allowed = new AtomicReference<>();
+        lookup.lookup("Steve", allowed::set);
+        assertEquals(NameLookup.Status.FOUND, allowed.get().status());
+    }
+
+    /**
+     * A lookup waiting in the queue has not spent the server's share yet, so a backlog that built
+     * up during an outage cannot drain into one window of requests.
+     */
+    @Test
+    void aQueuedLookupSpendsNothingUntilItRuns() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        List<Runnable> queue = new ArrayList<>();
+        List<NameLookup.Answer> answers = new ArrayList<>();
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile), queue::add, Runnable::run, () -> true, LOGGER);
+        for (int use = 0; use < 40; use++) {
+            lookup.lookup("Steve", answers::add);
+        }
+        assertEquals(40, queue.size(), "every lookup waits its turn");
+        assertEquals(0, answers.size(), "a queued lookup has not spent anything yet");
+        for (Runnable task : queue) {
+            task.run();
+        }
+        assertEquals(
+                33, answers.stream().filter(a -> a.status() == NameLookup.Status.FOUND).count());
+        assertEquals(
+                7, answers.stream().filter(a -> a.status() == NameLookup.Status.TOO_MANY).count());
+    }
+
+    @Test
+    void theAnswerArrivesOnlyWhenTheWorkerAndTheServerThreadRun() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile),
+                        queued::set,
+                        Runnable::run,
+                        () -> true,
+                        LOGGER);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        assertNull(answer.get(), "nothing may reach the player before the lookup runs");
+        queued.get().run();
+        assertEquals(NameLookup.Status.FOUND, answer.get().status());
+    }
+
+    /**
+     * The repository reports an unknown name and a failed request differently, and the two must not
+     * be confused: a timeout must not tell the player that Mojang has no such account.
+     */
+    @Test
+    void anUnknownNameAndAFailedRequestAreToldApart() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        assertEquals(
+                new NameLookup.Answer(NameLookup.Status.FOUND, profile),
+                NameLookup.find(
+                        repository(
+                                callback ->
+                                        callback.onProfileLookupSucceeded("Steve", profile.id())),
+                        "steve"));
+        assertEquals(
+                NameLookup.Status.NOT_FOUND,
+                NameLookup.find(
+                                repository(
+                                        callback ->
+                                                callback.onProfileLookupFailed(
+                                                        "steve",
+                                                        new ProfileNotFoundException(
+                                                                "no such name"))),
+                                "steve")
+                        .status());
+        assertEquals(
+                NameLookup.Status.FAILED,
+                NameLookup.find(
+                                repository(
+                                        callback ->
+                                                callback.onProfileLookupFailed(
+                                                        "steve",
+                                                        new AuthenticationUnavailableException(
+                                                                "the service is down"))),
+                                "steve")
+                        .status());
+        assertEquals(
+                NameLookup.Status.FAILED,
+                NameLookup.find(repository(callback -> {}), "steve").status(),
+                "a repository that never calls back must not read as an unknown name");
+    }
+
+    /** A word that cannot be a player name is refused without spending a lookup. */
+    @Test
+    void aNameThatCannotBelongToAnAccountNeverReachesTheRepository() {
+        int[] calls = {0};
+        NameLookup lookup =
+                lookup(
+                        name -> {
+                            calls[0]++;
+                            return notFound();
+                        });
+        for (String name : List.of("a".repeat(17), "bad name", "na\u00efve")) {
+            AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+            lookup.lookup(name, answer::set);
+            assertEquals(NameLookup.Status.NOT_FOUND, answer.get().status(), name);
+        }
+        assertEquals(0, calls[0], "no invalid name may reach the repository");
+    }
+
+    /** An answer that arrives after the server has stopped is dropped, not applied. */
+    @Test
+    void anAnswerIsDroppedWhenTheServerThreadIsGone() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile), queued::set, Runnable::run, () -> false, LOGGER);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        queued.get().run();
+        assertNull(answer.get(), "nothing may be applied off the server thread");
+    }
+
+    /**
+     * A found name that arrives too late to act on is reported as stale, so a grant cannot land
+     * minutes after the command that asked for it.
+     */
+    @Test
+    void aFoundNameThatArrivesTooLateIsNotActedOn() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        long[] now = {0};
+        LongSupplier clock = () -> now[0];
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile),
+                        queued::set,
+                        Runnable::run,
+                        () -> true,
+                        LOGGER,
+                        clock);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        // The clock moves while the lookup waits in the queue, which is the wait the bound is for.
+        now[0] = Duration.ofSeconds(31).toNanos();
+        queued.get().run();
+        assertEquals(NameLookup.Status.STALE, answer.get().status());
+        assertEquals(profile, answer.get().profile(), "the player is told which account was found");
+    }
+
+    /** An answer inside the bound is acted on, so the bound is not simply "always stale". */
+    @Test
+    void aFoundNameInsideTheBoundIsActedOn() {
+        NameAndId profile = new NameAndId(UUID.randomUUID(), "Steve");
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        long[] now = {0};
+        LongSupplier clock = () -> now[0];
+        NameLookup lookup =
+                new NameLookup(
+                        name -> found(profile),
+                        queued::set,
+                        Runnable::run,
+                        () -> true,
+                        LOGGER,
+                        clock);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("Steve", answer::set);
+        now[0] = Duration.ofSeconds(29).toNanos();
+        queued.get().run();
+        assertEquals(NameLookup.Status.FOUND, answer.get().status());
+    }
+
+    /** A late answer that only sends a message is still delivered. */
+    @Test
+    void aLateFailureIsStillReported() {
+        AtomicReference<Runnable> queued = new AtomicReference<>();
+        long[] now = {0};
+        LongSupplier clock = () -> now[0];
+        NameLookup lookup =
+                new NameLookup(
+                        name -> notFound(),
+                        queued::set,
+                        Runnable::run,
+                        () -> true,
+                        LOGGER,
+                        clock);
+        AtomicReference<NameLookup.Answer> answer = new AtomicReference<>();
+        lookup.lookup("HomesNeverSeen", answer::set);
+        now[0] = Duration.ofSeconds(31).toNanos();
+        queued.get().run();
+        assertEquals(NameLookup.Status.NOT_FOUND, answer.get().status());
+    }
+
+    private static NameLookup lookup(NameLookup.Repository repository) {
+        return lookup(repository, System::nanoTime);
+    }
+
+    private static NameLookup lookup(NameLookup.Repository repository, LongSupplier clock) {
+        Executor direct = Runnable::run;
+        return new NameLookup(repository, direct, direct, () -> true, LOGGER, clock);
+    }
+
+    /** A repository that runs {@code lookup} against the callback it is given. */
+    private static GameProfileRepository repository(Consumer<ProfileLookupCallback> lookup) {
+        return new GameProfileRepository() {
+            @Override
+            public void findProfilesByNames(String[] names, ProfileLookupCallback callback) {
+                lookup.accept(callback);
+            }
+
+            @Override
+            public Optional<com.mojang.authlib.services.response.NameAndId> findProfileByName(
+                    String name) {
+                throw new UnsupportedOperationException("the lookup must not use this");
+            }
+        };
+    }
+
+    private static NameLookup.Answer found(NameAndId profile) {
+        return new NameLookup.Answer(NameLookup.Status.FOUND, profile);
+    }
+
+    private static NameLookup.Answer notFound() {
+        return new NameLookup.Answer(NameLookup.Status.NOT_FOUND, null);
+    }
+}

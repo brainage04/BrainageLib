@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.lookup.LookupGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -110,7 +111,16 @@ public final class BrainageLibNeoForgeGameTests {
                                     ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
                     new TestFunction(
                             "loaded_walk_reads_only_loaded_chunks",
-                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
+                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks),
+                    new TestFunction(
+                            "a_server_keeps_one_lookup_and_a_test_can_replace_it",
+                            LookupGameTests::aServerKeepsOneLookupAndATestCanReplaceIt),
+                    new TestFunction(
+                            "an_answer_is_delivered_on_the_server_thread",
+                            LookupGameTests::anAnswerIsDeliveredOnTheServerThread),
+                    new TestFunction(
+                            "a_servers_allowances_are_shared_and_cleared_together",
+                            LookupGameTests::aServersAllowancesAreSharedAndClearedTogether));
 
     private BrainageLibNeoForgeGameTests() {}
 

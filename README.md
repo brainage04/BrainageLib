@@ -11,6 +11,7 @@ On a player's first join to a world, BrainageLib sends one combined notice namin
 - One first-join notice instead of a separate message from each mod.
 - Drop capture shared by Telekinesis and Skyport Minigames: drops and experience from blocks a player breaks, mobs the game credits them with killing, item frames, glow item frames, paintings, cushions and armour stands they break, boats and minecarts they break with their contents, explosions they cause (including beds and respawn anchors they use) and the decaying leaves of trees they fell go to that player, as the installed mods' rules decide. On its own BrainageLib delivers nothing.
 - Connected-block search shared by VeinMiner and Skyport Minigames: the blocks connected to a broken block, nearest first, read from loaded chunks only.
+- Background name lookup and per-player command rate limits shared by SimpleHomes, SpawnCommands and Async Profile Lookups: a name the server has not cached is asked of Mojang off the server thread, and one player's command use is bounded to once a second, 20 a minute and 400 an hour.
 
 ## Getting started
 
