@@ -235,10 +235,10 @@ NameLookup.of(server, "Example Mod name lookup", LOGGER)
                             server.services().nameToIdCache().add(answer.profile());
                             apply(answer.profile());
                         }
-                        case NOT_FOUND -> FEEDBACK.error(source, "Mojang has no player named '%s'.", typed);
-                        case FAILED -> FEEDBACK.error(source, "Could not look up '%s' right now.", typed);
-                        case TOO_MANY -> FEEDBACK.error(source, "Too many name lookups right now.");
-                        case STALE -> FEEDBACK.error(source, "Found '%s', but too late to act on. Run the command again.", typed);
+                        case NOT_FOUND -> FEEDBACK.failure(source, "Mojang has no player named '%s'.", typed);
+                        case FAILED -> FEEDBACK.failure(source, "Could not look up '%s' right now.", typed);
+                        case TOO_MANY -> FEEDBACK.failure(source, "Too many name lookups right now.");
+                        case STALE -> FEEDBACK.failure(source, "Found '%s', but too late to act on. Run the command again.", typed);
                     }
                 });
 ```
