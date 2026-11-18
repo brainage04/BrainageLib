@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.lookup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -92,9 +93,13 @@ class CommandRateLimitTest {
     void aBlankNameIsRefused() {
         assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, ""));
         assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, " "));
+        assertThrows(IllegalArgumentException.class, () -> CommandRateLimit.of(null, null));
     }
 
-    /** Clearing a server frees every name it was asked for. */
+    /**
+     * Clearing a server frees every name it was asked for. Each allowance is charged twice first,
+     * so a clear that did nothing would leave the second use refused.
+     */
     @Test
     void clearAllFreesEveryNameOfAServer() {
         CommandRateLimit main = CommandRateLimit.of(null);
@@ -103,6 +108,8 @@ class CommandRateLimitTest {
         try {
             assertEquals(0, main.refuse(player));
             assertEquals(0, listing.refuse(player));
+            assertTrue(main.refuse(player) > 0, "the main allowance must be charged");
+            assertTrue(listing.refuse(player) > 0, "the named allowance must be charged");
             CommandRateLimit.clearAll(null);
             assertEquals(0, main.refuse(player), "the main allowance must be freed");
             assertEquals(0, listing.refuse(player), "the named allowance must be freed");
