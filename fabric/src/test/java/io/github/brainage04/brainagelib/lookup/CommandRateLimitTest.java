@@ -98,7 +98,7 @@ class CommandRateLimitTest {
 
     /**
      * Clearing a server frees every name it was asked for. Each allowance is charged twice first,
-     * so a clear that did nothing would leave the second use refused.
+     * so a clear that did nothing would leave the use after it refused.
      */
     @Test
     void clearAllFreesEveryNameOfAServer() {
