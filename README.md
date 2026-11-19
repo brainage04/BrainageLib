@@ -18,8 +18,13 @@ BrainageLib is a server-side Fabric and NeoForge library for Minecraft 26.3. It 
 
 ## Commands
 
+### Operator commands
+
+- `/servermods config` - lists operator configuration commands
+
+### Player commands
+
 - `/servermods` or `/servermods help` - lists registered mods, descriptions, and player help commands
-- `/servermods config` - lists operator configuration commands (requires operator permission level 2)
 
 ## Compatibility
 
