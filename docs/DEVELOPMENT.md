@@ -200,7 +200,7 @@ modBus.addListener((RegisterEvent event) ->
 - Each rule's id is `<namespace>:<path>`. A path or rule added twice throws `IllegalArgumentException`.
 - `registerAll` runs once. A rule added after it throws `IllegalStateException`, so a rule in a class that loads too late fails at once instead of silently missing from the registry.
 
-A rule's name and description in the edit-game-rules screen come from the translation keys `gamerule.<namespace>.<path>` and `gamerule.<namespace>.<path>.description`, which the mod's own language file provides.
+A rule's name and description in the edit-game-rules screen come from the translation keys `gamerule.<namespace>.<path>` and `gamerule.<namespace>.<path>.description`, which the mod's own language file provides. Without them the screen shows the raw key.
 
 ## Drop capture
 

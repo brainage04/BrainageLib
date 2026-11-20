@@ -74,6 +74,8 @@ public final class GameRuleSetGameTests {
         } catch (CommandSyntaxException exception) {
             throw new AssertionError("Expected a valid gamerule command", exception);
         } finally {
+            // The rules live in the server's GameRules for the whole run, so put them back for a
+            // second run of this test.
             rules.set(FLAG, FLAG.defaultValue(), server);
             rules.set(COUNT, COUNT.defaultValue(), server);
         }

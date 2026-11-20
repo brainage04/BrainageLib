@@ -25,7 +25,8 @@ import net.minecraft.world.level.gamerules.GameRuleCategory;
  * }</pre>
  *
  * <p>{@link #registerAll} runs once. Adding a rule after it throws, so a rule created too late
- * fails at once instead of silently missing from the registry. Instances are thread-safe.
+ * fails at once instead of silently missing from the registry. If the registrar throws, the set
+ * stays closed and the mod cannot register again.
  */
 public final class GameRuleSet {
     private final String namespace;

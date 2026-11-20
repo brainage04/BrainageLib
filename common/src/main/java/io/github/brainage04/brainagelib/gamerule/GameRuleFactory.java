@@ -22,7 +22,7 @@ public final class GameRuleFactory {
 
     // The game's own helpers are private (GameRules.registerBoolean and registerInteger,
     // GameRules.java:167-203 in 26.3), so these repeat the arguments they pass to the GameRule
-    // constructor.
+    // constructor at GameRules.java:219.
 
     /** A true/false rule; {@code /gamerule} reports 1 for true and 0 for false. */
     public static GameRule<Boolean> bool(GameRuleCategory category, boolean defaultValue) {
