@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.ticks.LevelTicks;
 import org.jspecify.annotations.Nullable;
 
@@ -26,12 +27,17 @@ import org.jspecify.annotations.Nullable;
  * BigDripleafStemBlock.java:79-80,92-93}, {@code ScaffoldingBlock.java:103,115-117}). Those drops
  * are outside every capture scope, so they land on the ground.
  *
- * <p>So a block tick scheduled while a player's break is running is recorded for that player, and
- * {@code ServerLevel.tickBlock} runs a recorded position's tick inside that player's scope ({@link
- * DropCapture}). A column carries the player from tick to tick, because the next block's tick is
- * scheduled inside the scope the previous one ran in. Only a player's own break records: an
- * explosion, a mob's death, a decaying leaf, a piston, flowing water or another player's break
- * schedules ticks with no break running, so those drops stay where the game puts them.
+ * <p>So a block tick scheduled while a player's break is running, for a block that can no longer
+ * survive, is recorded for that player, and {@code ServerLevel.tickBlock} runs a recorded position's
+ * tick inside that player's scope ({@link DropCapture}). A column carries the player from tick to
+ * tick, because the next block's tick is scheduled inside the scope the previous one ran in. Only a
+ * player's own break records: an explosion, a mob's death, a decaying leaf, a piston, flowing water
+ * or another player's break schedules ticks with no break running, so those drops stay where the
+ * game puts them.
+ *
+ * <p>The {@code canSurvive} test is what keeps this to the blocks that are about to break. Every
+ * block that schedules a tick on a neighbour change is seen here, including a repeater or a falling
+ * block that is fine where it stands; only one that has already lost its support is recorded.
  *
  * <p>The window is short because the tick it records runs on the next game tick; it only has to
  * outlast a chunk that stops ticking between the two. A record is used up by the tick it names.
@@ -97,7 +103,12 @@ public final class SupportTicks {
         ServerPlayer player = breakers.getLast();
         if (!(player.level() instanceof ServerLevel level)
                 || level.getBlockTicks() != ticks
-                || !player.isAlive()) {
+                || !player.isAlive()
+                || player.preventsBlockDrops()) {
+            return;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (!state.is(type) || state.canSurvive(level, pos)) {
             return;
         }
         Long2ObjectOpenHashMap<Owner> records =

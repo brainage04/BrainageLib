@@ -4,6 +4,7 @@ import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.SupportBreakGameTests;
 import io.github.brainage04.brainagelib.lookup.LookupGameTests;
 import java.util.List;
 import java.util.function.Consumer;
@@ -109,6 +110,33 @@ public final class BrainageLibNeoForgeGameTests {
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
                             DropCaptureGameTests
                                     ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
+                    new TestFunction(
+                            "sugar_cane_column_pays_the_breaker",
+                            SupportBreakGameTests::sugarCaneColumnPaysTheBreaker),
+                    new TestFunction(
+                            "cactus_column_pays_the_breaker",
+                            SupportBreakGameTests::cactusColumnPaysTheBreaker),
+                    new TestFunction(
+                            "bamboo_column_pays_the_breaker",
+                            SupportBreakGameTests::bambooColumnPaysTheBreaker),
+                    new TestFunction(
+                            "kelp_column_pays_the_breaker",
+                            SupportBreakGameTests::kelpColumnPaysTheBreaker),
+                    new TestFunction(
+                            "vine_columns_pay_the_breaker",
+                            SupportBreakGameTests::vineColumnsPayTheBreaker),
+                    new TestFunction(
+                            "chorus_columns_pay_the_breaker",
+                            SupportBreakGameTests::chorusColumnsPayTheBreaker),
+                    new TestFunction(
+                            "big_dripleaf_stems_pay_the_breaker",
+                            SupportBreakGameTests::bigDripleafStemsPayTheBreaker),
+                    new TestFunction(
+                            "scaffolding_column_pays_the_breaker",
+                            SupportBreakGameTests::scaffoldingColumnPaysTheBreaker),
+                    new TestFunction(
+                            "support_broken_without_a_player_leaves_drops_in_the_world",
+                            SupportBreakGameTests::supportBrokenWithoutAPlayerLeavesDropsInTheWorld),
                     new TestFunction(
                             "loaded_walk_reads_only_loaded_chunks",
                             ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks),

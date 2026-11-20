@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import io.github.brainage04.brainagelib.drops.DropCapture;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
 import io.github.brainage04.brainagelib.drops.SupportTicks;
 import net.minecraft.core.BlockPos;
