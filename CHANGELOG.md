@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.1.0 (unreleased)
+## 2.2.0 (unreleased)
 
 Nothing changes for players: the new API only builds and registers game rules for the mods that use it.
 
@@ -8,6 +8,18 @@ Nothing changes for players: the new API only builds and registers game rules fo
 
 - `GameRuleSet`: one mod's boolean and integer game rules with their ids, built in common code and registered once from each loader (`registerAll`). Rules built this way behave like the game's own under `/gamerule`, in the world's saved rules and in the edit-game-rules screen.
 - `GameRuleFactory.bool(...)` and `GameRuleFactory.integer(...)` build the same rules without an id.
+
+## 2.1.0
+
+BrainageLib 2.1.0 adds one API and changes nothing players see.
+
+### New API
+
+- `ConnectedBlocks` (`io.github.brainage04.brainagelib.blocks`): the breadth-first search a vein miner or tree feller runs from a broken block. `find(origin, limit, adjacency, member)` returns up to `limit` connected positions, nearest first, `origin` left out, visiting neighbours in one fixed order and asking `member` about each position once. `Adjacency` picks face (6), face and edge (18) or all 26 neighbours. `loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk.
+
+### Build and publishing
+
+- A mod that calls `ConnectedBlocks` needs `">=2.1.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.1.0,3.0.0)"` in `neoforge.mods.toml`.
 
 ## 2.0.0
 
