@@ -2,7 +2,16 @@
 
 ## 2.2.0
 
-BrainageLib 2.2.0 adds two APIs and changes nothing players see.
+BrainageLib 2.2.0 adds two APIs and one fix to drop capture.
+
+### Drop capture
+
+- A player who breaks the bottom of a sugar cane, cactus, bamboo, kelp, twisting or weeping vine,
+  chorus plant, big dripleaf or scaffolding column now gets the whole column. Those blocks break a
+  tick after their support goes, through `level.destroyBlock(pos, true)` with no breaker, so their
+  drops used to land on the ground. A support the game removes with no player behind it, such as a
+  piston, an explosion or flowing water, still leaves those drops in the world, and so does a
+  creative player's break.
 
 ### New API
 
