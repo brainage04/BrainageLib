@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.neoforge;
 
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
+import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
 import io.github.brainage04.brainagelib.ServerPlatformGameTests;
 import java.util.List;
@@ -116,7 +117,10 @@ public final class BrainageLibNeoForgeGameTests {
                                             context, "NeoForge")),
                     new TestFunction(
                             "neoforge_server_platform_listens_to_the_matching_events",
-                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents));
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents),
+                    new TestFunction(
+                            "loaded_walk_reads_only_loaded_chunks",
+                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
 
     private BrainageLibNeoForgeGameTests() {}
 
