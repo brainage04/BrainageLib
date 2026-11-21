@@ -14,6 +14,9 @@ public abstract class MinecraftServerMixin {
         CurrentServer.serverThreadStarted((MinecraftServer) (Object) this);
     }
 
+    // A GameTestServer's onServerExit calls System.exit (GameTestServer.java:307-311), so the JVM
+    // ends inside runServer's finally and this never runs there. The process is exiting, so nothing
+    // reads the stale value.
     @Inject(method = "runServer", at = @At("RETURN"))
     private void brainagelib$stopBeingCurrent(CallbackInfo callback) {
         CurrentServer.serverThreadEnded((MinecraftServer) (Object) this);
