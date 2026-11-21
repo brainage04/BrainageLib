@@ -168,4 +168,9 @@ public final class BrainageLibGameTest {
     public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
         ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
     }
+
+    @GameTest
+    public void gameRuleSetRulesWorkWithTheGameruleCommandAndAreSaved(GameTestHelper context) {
+        GameRuleSetGameTests.rulesWorkWithTheGameruleCommandAndAreSaved(context);
+    }
 }

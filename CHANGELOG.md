@@ -9,6 +9,8 @@ Nothing changes for players: the new API is for the mods that use it.
 - `OwnerAccessList<K>`: which guests an owner lets use something of theirs (a spawn, a named home), with `grant` and `revoke` returning how many guests changed, `allows` answering whether a player may use it, `guests` giving a key's guests, and a callback that runs only when something changed. The mod's own codec saves it through `snapshot()` and `load(...)`.
 - `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from before it loads its levels until after its stopped listeners. Use it from server code only: in a client it is the singleplayer server while one runs and `null` on a remote server. On NeoForge that is the dedicated, integrated and GameTest servers only.
 - `ServerPlatform.get()`: the config directory, command registration, server starting, started, stopping and stopped, and the end of every server tick, from common code with the same meaning on Fabric and NeoForge. Command registrars get the server's command selection, and stopping listeners run on every stop, also after a crash or a failed start. "Starting" is before the server loads its levels on both loaders, which on NeoForge is `ServerAboutToStartEvent`, not `ServerStartingEvent`.
+- `GameRuleSet`: one mod's boolean and integer game rules with their ids, built in common code and registered once from each loader (`registerAll`). Rules built this way behave like the game's own under `/gamerule`, in the world's saved rules and in the edit-game-rules screen.
+- `GameRuleFactory.bool(...)` and `GameRuleFactory.integer(...)` build the same rules without an id.
 
 ### Build and publishing
 

@@ -5,10 +5,12 @@ import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.CurrentServerGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.GameRuleSetGameTests;
 import io.github.brainage04.brainagelib.ServerPlatformGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -125,7 +127,10 @@ public final class BrainageLibNeoForgeGameTests {
                             NeoForgeServerPlatformGameTests::listensToTheMatchingEvents),
                     new TestFunction(
                             "loaded_walk_reads_only_loaded_chunks",
-                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
+                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks),
+                    new TestFunction(
+                            "game_rule_set_rules_work_with_the_gamerule_command_and_are_saved",
+                            GameRuleSetGameTests::rulesWorkWithTheGameruleCommandAndAreSaved));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -137,6 +142,10 @@ public final class BrainageLibNeoForgeGameTests {
                     Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, testFunction.id()),
                     testFunction::function);
         }
+        // The registration DEVELOPMENT.md tells a NeoForge mod to use.
+        event.register(
+                Registries.GAME_RULE,
+                helper -> GameRuleSetGameTests.RULES.registerAll(helper::register));
     }
 
     /** NeoForge's first server-starting event, for CurrentServerGameTests. */
