@@ -1,6 +1,7 @@
 package io.github.brainage04.brainagelib.neoforge;
 
 import com.mojang.brigadier.CommandDispatcher;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.commands.Commands;
@@ -81,6 +82,38 @@ public final class NeoForgeServerPlatformGameTests {
                 calls,
                 List.of("commands INTEGRATED"),
                 "Command registrars get the event's command selection");
+
+        IEventBus failingBus = BusBuilder.builder().build();
+        NeoForgeServerPlatform failing = new NeoForgeServerPlatform(failingBus);
+        failing.onServerStopping(
+                listened -> {
+                    throw new IllegalStateException("A stopping listener failed on purpose");
+                });
+        // A Kotlin listener or @SneakyThrows can throw a checked exception through a Consumer.
+        failing.onServerStopping(
+                listened -> sneakyThrow(new IOException("A stopping listener failed on purpose")));
+        failing.onServerStopping(listened -> calls.add("stopping"));
+        // The bus rethrows a listener's exception, which would end a normal stop as a crash and
+        // skip the listeners after it.
+        calls.clear();
+        failingBus.post(new ServerStoppingEvent(server));
+        failing.beforeStopServer(server);
+        context.assertValueEqual(
+                calls,
+                List.of("stopping"),
+                "A stopping listener that throws in ServerStoppingEvent leaves the others to run");
+
+        calls.clear();
+        failing.beforeStopServer(server);
+        context.assertValueEqual(
+                calls,
+                List.of("stopping"),
+                "A stopping listener that throws leaves the others to run");
         context.succeed();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void sneakyThrow(Throwable throwable) throws T {
+        throw (T) throwable;
     }
 }
