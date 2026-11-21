@@ -160,6 +160,11 @@ public final class BrainageLibGameTest {
     }
 
     @GameTest
+    public void serverPlatformListenersRunOnTheRunningServer(GameTestHelper context) {
+        ServerPlatformGameTests.listenersRunOnTheRunningServer(context, "Fabric");
+    }
+
+    @GameTest
     public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
         ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
     }

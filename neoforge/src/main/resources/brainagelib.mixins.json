@@ -12,6 +12,7 @@
 		"ExperienceOrbMixin",
 		"ItemFrameMixin",
 		"LivingEntityMixin",
+		"MinecraftServerStoppingMixin",
 		"RespawnAnchorBlockMixin",
 		"ServerExplosionMixin",
 		"ServerLevelMixin",

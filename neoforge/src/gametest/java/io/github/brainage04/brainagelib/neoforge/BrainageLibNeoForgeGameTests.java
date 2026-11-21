@@ -5,6 +5,7 @@ import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.CurrentServerGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.ServerPlatformGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -12,6 +13,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
@@ -114,6 +116,14 @@ public final class BrainageLibNeoForgeGameTests {
                             "current_server_is_the_running_server",
                             CurrentServerGameTests::currentServerIsTheRunningServer),
                     new TestFunction(
+                            "server_platform_listeners_run_on_the_running_server",
+                            context ->
+                                    ServerPlatformGameTests.listenersRunOnTheRunningServer(
+                                            context, "NeoForge")),
+                    new TestFunction(
+                            "neoforge_server_platform_listens_to_the_matching_events",
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents),
+                    new TestFunction(
                             "loaded_walk_reads_only_loaded_chunks",
                             ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
 
@@ -133,6 +143,12 @@ public final class BrainageLibNeoForgeGameTests {
     @SubscribeEvent
     public static void serverAboutToStart(ServerAboutToStartEvent event) {
         CurrentServerGameTests.serverStarting(event.getServer());
+    }
+
+    /** Registers the GameTest platform listeners while the mod initializes, as a mod would. */
+    @SubscribeEvent
+    public static void registerPlatformListeners(FMLCommonSetupEvent event) {
+        ServerPlatformGameTests.registerListeners();
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}

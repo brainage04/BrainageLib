@@ -57,6 +57,42 @@ workspaceDependencies {
 
 In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
 
+## Loader platform
+
+`ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the config directory, command registration and the server's lifecycle and tick, with the same meaning on Fabric and NeoForge, so a mod needs one implementation per loader only for the services this interface does not have:
+
+`ServerPlatform` is new in 2.2.0, so a mod that calls it needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`. The dependency examples above show the released version.
+
+```java
+public static void initialize() {
+    ServerPlatform platform = ServerPlatform.get();
+    config = ExampleConfig.load(platform.configDirectory().resolve("example.json"));
+    platform.onRegisterCommands((dispatcher, context, selection) -> ExampleCommands.register(dispatcher, context));
+    platform.onServerStarting(ExampleState::reset);
+    platform.onEndServerTick(ExampleRequests::tick);
+    platform.onServerStopping(ExampleRequests::clear);
+}
+```
+
+Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod constructor), so the listeners are in place before a server starts.
+
+| Method | Runs | Fabric | NeoForge |
+|---|---|---|---|
+| `onRegisterCommands` | every time the server builds its command tree, with its command selection | `CommandRegistrationCallback` | `RegisterCommandsEvent` |
+| `onServerStarting` | when a server starts, before it loads its levels | `SERVER_STARTING` | `ServerAboutToStartEvent` |
+| `onServerStarted` | once the levels are loaded, before the first tick | `SERVER_STARTED` | `ServerStartedEvent` |
+| `onServerStopping` | when the server stops, before it saves and shuts down: after the last tick, and also after a crash or a failed start | `SERVER_STOPPING` | `ServerStoppingEvent`, or the start of `stopServer` when NeoForge did not post it |
+| `onServerStopped` | after the server has shut down | `SERVER_STOPPED` | `ServerStoppedEvent` |
+| `onEndServerTick` | at the end of every server tick | `END_SERVER_TICK` | `ServerTickEvent.Post` |
+
+The command selection says which kind of server the tree is for: add dedicated-only commands when `selection != Commands.CommandSelection.INTEGRATED`, singleplayer-only ones when `selection != Commands.CommandSelection.DEDICATED`. Those two comparisons are exactly the enum's own `includeDedicated` and `includeIntegrated` fields, which are private in vanilla and readable only through Fabric's command API, so comparing the enum is the form that compiles on both loaders. `ALL` counts as both, and in a development environment the game builds one `ALL` tree at startup to check the command syntax, which a mod's registrar also sees.
+
+NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders. On both loaders a stopping listener that throws an `Exception`, checked ones included, is logged, and the other stopping listeners and the save still run.
+
+NeoForge's `ServerStartingEvent` is not the counterpart of Fabric's `SERVER_STARTING`: NeoForge posts it after the levels have loaded, so state that world generation reads must be set in `onServerStarting`, and work that needs the levels belongs in `onServerStarted`.
+
+`loaderName()` returns `"Fabric"` or `"NeoForge"`, and `configDirectory()` the loader's config directory. Each listener is added to the loader's event when it is registered, so listeners run in the order the loader runs that event's listeners.
+
 ## Command feedback
 
 Create one `ModFeedback` instance per mod and reuse it for player and command-source output:
