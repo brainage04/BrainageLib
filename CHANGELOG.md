@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.2.0 (unreleased)
+
+Nothing changes for players: the new API is for the mods that use it.
+
+### New API
+
+- `OwnerAccessList<K>`: which guests an owner lets use something of theirs (a spawn, a named home), with `grant` and `revoke` returning how many guests changed, `allows` answering whether a player may use it, `guests` giving a key's guests, and a callback that runs only when something changed. The mod's own codec saves it through `snapshot()` and `load(...)`.
+
+### Build and publishing
+
+- A mod that calls `OwnerAccessList` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
+
 ## 2.1.0
 
 BrainageLib 2.1.0 adds one API and changes nothing players see.
