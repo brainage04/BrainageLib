@@ -6,8 +6,8 @@ BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainag
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:2.0.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:2.0.0"
+    implementation "io.github.brainage04:brainagelib:2.1.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:2.1.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:2.0.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`, capped below the next majo
 ```json
 {
   "depends": {
-    "brainagelib": ">=2.0.0 <3.0.0"
+    "brainagelib": ">=2.1.0 <3.0.0"
   }
 }
 ```
@@ -35,7 +35,7 @@ For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neofor
 [[dependencies.examplemod]]
 modId="brainagelib"
 type="required"
-versionRange="[2.0.0,3.0.0)"
+versionRange="[2.1.0,3.0.0)"
 ordering="AFTER"
 side="BOTH"
 ```
@@ -49,7 +49,7 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:2.0.0")
+        coordinate.set("io.github.brainage04:brainagelib:2.1.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
@@ -224,6 +224,16 @@ DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
 });
 ```
 
+## Connected blocks
+
+`io.github.brainage04.brainagelib.blocks.ConnectedBlocks` finds the blocks connected to one block, for a vein miner or a tree feller. `find(origin, limit, adjacency, member)` walks breadth-first from `origin` through the neighbours `member` accepts and returns up to `limit` of them, nearest first, `origin` left out. `Adjacency` says which neighbours count: `FACES` (6), `FACES_EDGES` (18) or `FACES_EDGES_CORNERS` (26). Neighbours are visited in one fixed order (x, then y, then z offsets from -1 to 1), so a limit always cuts the same far end off, and `member` is asked about each position once. `member` reads the world itself. `ConnectedBlocks.loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk. Call it on the server thread: off it, `getChunkNow` returns null and the walk finds nothing. Use one `loaded` predicate per walk: it remembers the last chunk it read.
+
+```java
+List<BlockPos> vein =
+        ConnectedBlocks.find(origin, 63, Adjacency.FACES_EDGES_CORNERS,
+                ConnectedBlocks.loaded(level, state -> state.is(Blocks.IRON_ORE)));
+```
+
 ## GameTest support
 
 `io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
@@ -231,14 +241,14 @@ DropPolicies.register(DropPolicies.DEFAULT_PRIORITY, new DropPolicy() {
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:2.0.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:2.1.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.0.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.0.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.1.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.1.0"
 }
 ```
 

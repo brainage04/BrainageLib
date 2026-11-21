@@ -1,12 +1,24 @@
 # Changelog
 
-## 2.1.0 (unreleased)
+## 2.2.0 (unreleased)
 
 Nothing changes for players: the new API is for the mods that use it.
 
 ### New API
 
 - `OwnerAccessList<K>`: which guests an owner lets use something of theirs (a spawn, a named home), with `allows`, `grant` and `revoke` returning how many guests changed, and a callback that runs only when something changed. The mod's own codec saves it through `snapshot()` and `load(...)`.
+
+## 2.1.0
+
+BrainageLib 2.1.0 adds one API and changes nothing players see.
+
+### New API
+
+- `ConnectedBlocks` (`io.github.brainage04.brainagelib.blocks`): the breadth-first search a vein miner or tree feller runs from a broken block. `find(origin, limit, adjacency, member)` returns up to `limit` connected positions, nearest first, `origin` left out, visiting neighbours in one fixed order and asking `member` about each position once. `Adjacency` picks face (6), face and edge (18) or all 26 neighbours. `loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk.
+
+### Build and publishing
+
+- A mod that calls `ConnectedBlocks` needs `">=2.1.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.1.0,3.0.0)"` in `neoforge.mods.toml`.
 
 ## 2.0.0
 

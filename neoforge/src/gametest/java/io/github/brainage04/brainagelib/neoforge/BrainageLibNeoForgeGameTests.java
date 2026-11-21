@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.neoforge;
 
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
+import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
 import java.util.List;
 import java.util.function.Consumer;
@@ -106,7 +107,10 @@ public final class BrainageLibNeoForgeGameTests {
                     new TestFunction(
                             "vehicle_broken_by_a_player_who_is_not_delivered_stays_in_the_world",
                             DropCaptureGameTests
-                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld));
+                                    ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
+                    new TestFunction(
+                            "loaded_walk_reads_only_loaded_chunks",
+                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
 
     private BrainageLibNeoForgeGameTests() {}
 

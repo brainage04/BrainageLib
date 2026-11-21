@@ -153,4 +153,9 @@ public final class BrainageLibGameTest {
     public void vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(GameTestHelper context) {
         DropCaptureGameTests.vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(context);
     }
+
+    @GameTest
+    public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
+        ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
+    }
 }
