@@ -257,4 +257,4 @@ heavy -- ./gradlew --no-daemon build runAllGameTests
 
 The root build produces Fabric and NeoForge JARs in `build/libs` and `common/build/libs/brainagelib-gametest-<version>.jar`; CI invokes `runAllGameTests` to run the Fabric production GameTests and the NeoForge GameTests on a NeoForge server against the release JAR. BrainageLib's own GameTests compile the GameTest support sources directly.
 
-Builds and CI use MinecraftModConventions 3.1.2.
+Builds and CI use MinecraftModConventions 3.5.0.
