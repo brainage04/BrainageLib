@@ -158,4 +158,9 @@ public final class BrainageLibGameTest {
     public void currentServerIsTheRunningServer(GameTestHelper context) {
         CurrentServerGameTests.currentServerIsTheRunningServer(context);
     }
+
+    @GameTest
+    public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
+        ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
+    }
 }

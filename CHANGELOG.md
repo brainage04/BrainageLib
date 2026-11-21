@@ -1,12 +1,24 @@
 # Changelog
 
-## 2.1.0 (unreleased)
+## 2.2.0 (unreleased)
 
 Nothing changes for players: the new API is for the mods that use it.
 
 ### New API
 
 - `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from before it loads its levels until after its stopped listeners. Use it from server code only: in a client it is the singleplayer server while one runs and `null` on a remote server.
+
+## 2.1.0
+
+BrainageLib 2.1.0 adds one API and changes nothing players see.
+
+### New API
+
+- `ConnectedBlocks` (`io.github.brainage04.brainagelib.blocks`): the breadth-first search a vein miner or tree feller runs from a broken block. `find(origin, limit, adjacency, member)` returns up to `limit` connected positions, nearest first, `origin` left out, visiting neighbours in one fixed order and asking `member` about each position once. `Adjacency` picks face (6), face and edge (18) or all 26 neighbours. `loaded(level, statePredicate)` reads only chunks already loaded and rejects positions outside the build height, so a walk never loads a chunk.
+
+### Build and publishing
+
+- A mod that calls `ConnectedBlocks` needs `">=2.1.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.1.0,3.0.0)"` in `neoforge.mods.toml`.
 
 ## 2.0.0
 
