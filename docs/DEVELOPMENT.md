@@ -61,7 +61,7 @@ In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusa
 
 `ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the config directory, command registration and the server's lifecycle and tick, with the same meaning on Fabric and NeoForge, so a mod needs one implementation per loader only for the services this interface does not have:
 
-`ServerPlatform` is new in 2.2.0, so a mod that calls it needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`. The dependency examples above show the released version.
+`ServerPlatform` is new in 2.2.0, so a mod that calls it needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`. The dependency examples above show 2.2.0, which is unreleased until the tag.
 
 ```java
 public static void initialize() {

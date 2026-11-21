@@ -28,6 +28,7 @@ BrainageLib 2.2.0 adds new API for the mods that use it, and one fix to drop cap
 - A mod that calls `OwnerAccessList` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
 - A mod that calls `CurrentServer` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
 - A mod that calls `ServerPlatform` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
+- A mod that calls `GameRuleSet` or `GameRuleFactory` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
 - A mod that calls `NameLookup` or `CommandRateLimit` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
 
 ## 2.1.0
