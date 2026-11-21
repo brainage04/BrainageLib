@@ -113,7 +113,7 @@ class GameRuleFactoryTest {
     private static void assertSameShape(GameRule<?> vanilla, GameRule<?> rule) {
         assertEquals(vanilla.category(), rule.category());
         assertEquals(vanilla.gameRuleType(), rule.gameRuleType());
-        // BoolArgumentType declares no equals (brigadier 1.3.11), so compare its class;
+        // BoolArgumentType declares no equals (brigadier 1.3.11), so compare its class.
         // IntegerArgumentType.equals compares the range, so compare the values.
         assertEquals(vanilla.argument().getClass(), rule.argument().getClass());
         if (rule.argument() instanceof IntegerArgumentType) {

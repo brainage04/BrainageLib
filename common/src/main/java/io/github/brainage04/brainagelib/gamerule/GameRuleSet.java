@@ -26,7 +26,8 @@ import net.minecraft.world.level.gamerules.GameRuleCategory;
  *
  * <p>{@link #registerAll} runs once. Adding a rule after it throws, so a rule created too late
  * fails at once instead of silently missing from the registry. If the registrar throws, the set
- * stays closed and the mod cannot register again.
+ * stays closed and the mod cannot register again, and the rules the registrar already took stay
+ * in the registry.
  */
 public final class GameRuleSet {
     private final String namespace;
