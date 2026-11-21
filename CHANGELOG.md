@@ -6,7 +6,11 @@ Nothing changes for players: the new API is for the mods that use it.
 
 ### New API
 
-- `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from before it loads its levels until after its stopped listeners. Use it from server code only: in a client it is the singleplayer server while one runs and `null` on a remote server.
+- `CurrentServer.get()`: the server running in this game instance, or `null`, for code the game gives no server or level to. A server is current from before it loads its levels until after its stopped listeners. Use it from server code only: in a client it is the singleplayer server while one runs and `null` on a remote server. On NeoForge that is the dedicated, integrated and GameTest servers only.
+
+### Build and publishing
+
+- A mod that calls `CurrentServer` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
 
 ## 2.1.0
 

@@ -15,8 +15,8 @@ public abstract class MinecraftServerMixin {
     }
 
     // A GameTestServer's onServerExit calls System.exit (GameTestServer.java:307-311), so the JVM
-    // ends inside runServer's finally and this never runs there. The process is exiting, so nothing
-    // reads the stale value.
+    // ends inside runServer's finally and this never runs there. Shutdown hooks still run during
+    // that exit, so a mod's own hook can read the stale server; no BrainageLib code does.
     @Inject(method = "runServer", at = @At("RETURN"))
     private void brainagelib$stopBeingCurrent(CallbackInfo callback) {
         CurrentServer.serverThreadEnded((MinecraftServer) (Object) this);

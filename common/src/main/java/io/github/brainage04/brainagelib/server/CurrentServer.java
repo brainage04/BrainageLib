@@ -35,8 +35,9 @@ public final class CurrentServer {
 
     /**
      * Called by BrainageLib's NeoForge module to answer {@link #get()} with the loader's own record
-     * of the running server. On NeoForge that record is a plain field, so a read from another
-     * thread sees it no sooner than NeoForge publishes it.
+     * of the running server. BrainageLib's own wiring: a mod that calls it changes the answer for
+     * every mod. On NeoForge that record is a plain field, so a read from another thread sees it no
+     * sooner than NeoForge publishes it.
      */
     @ApiStatus.Internal
     public static void readFrom(Supplier<@Nullable MinecraftServer> loaderLookup) {
