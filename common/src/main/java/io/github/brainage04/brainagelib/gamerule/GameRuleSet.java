@@ -27,8 +27,8 @@ import net.minecraft.world.level.gamerules.GameRuleCategory;
  * <p>{@link #registerAll} runs once. Adding a rule after it throws, so a rule created too late
  * fails at once instead of silently missing from the registry. If the registrar throws, the set
  * stays closed and the mod cannot register again. A registrar that writes straight through leaves
- * the rules it already took in the registry; NeoForge reverts the whole registry when a
- * registration event throws (GameData.java:100-103 in 26.3).
+ * the rules it already took in the registry. NeoForge reverts the whole registry when a
+ * registration event throws (GameData.java:102-106 in 26.3).
  */
 public final class GameRuleSet {
     private final String namespace;
