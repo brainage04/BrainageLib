@@ -65,7 +65,10 @@ public final class DropCaptureGameTests {
     private static final BlockPos FIRST_POS = new BlockPos(1, 1, 1);
     private static final BlockPos SECOND_POS = new BlockPos(5, 1, 1);
     private static final BlockPos BLOCK_POS = new BlockPos(3, 1, 3);
-    private static final BlockPos FAR_POS = new BlockPos(3, 1, 10);
+    /// Inside the 8x8x8 structure, and far enough from `FIRST_POS` that neither the chest's nor the
+    /// player's three-block check reaches the other. A position outside the structure has no barrier
+    /// ring and no floor, so a drop there can fall out of the check's reach.
+    private static final BlockPos FAR_POS = new BlockPos(6, 1, 6);
     private static final BlockPos MOB_POS = new BlockPos(3, 1, 6);
 
     /// Rolls of a decaying oak leaf's loot table. It pays out on only about 7% of leaves (a sapling
