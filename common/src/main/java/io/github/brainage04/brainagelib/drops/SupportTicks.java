@@ -3,12 +3,14 @@ package io.github.brainage04.brainagelib.drops;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import java.util.ArrayDeque;
-import java.util.IdentityHashMap;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.ticks.LevelTicks;
@@ -27,23 +29,32 @@ import org.jspecify.annotations.Nullable;
  * BigDripleafStemBlock.java:79-80,92-93}, {@code ScaffoldingBlock.java:103,115-117}). Those drops
  * are outside every capture scope, so they land on the ground.
  *
- * <p>So a block tick scheduled while a player's break is running, for a block that can no longer
- * survive, is recorded for that player, and {@code ServerLevel.tickBlock} runs a recorded position's
- * tick inside that player's scope ({@link DropCapture}). A column carries the player from tick to
- * tick, because the next block's tick is scheduled inside the scope the previous one ran in. Only a
+ * <p>So a block tick scheduled while a player's break is running is recorded for that player, and a
+ * {@code Level.destroyBlock} with no breaker at a recorded position runs inside that player's scope
+ * ({@link DropCapture}). The scope covers the whole call, including the {@code setBlock} that
+ * schedules the next block's tick, so a column carries the player from tick to tick. Only a
  * player's own break records: an explosion, a mob's death, a decaying leaf, a piston, flowing water
  * or another player's break schedules ticks with no break running, so those drops stay where the
  * game puts them.
  *
- * <p>The {@code canSurvive} test is what keeps this to the blocks that are about to break. Every
- * block that schedules a tick on a neighbour change is seen here, including a repeater or a falling
- * block that is fine where it stands; only one that has already lost its support is recorded.
- *
- * <p>The window is short because the tick it records runs on the next game tick; it only has to
- * outlast a chunk that stops ticking between the two. A record is used up by the tick it names.
+ * <p>The record is used only by a destroy that actually happens, at that position, of that block,
+ * with no breaker. The {@code canSurvive} test at record time is a narrowing, not the decision: it
+ * keeps the map to blocks that have already lost their support, which is the family's precondition.
+ * It can still record a tick that will not destroy, such as a scaffolding block that falls instead
+ * of breaking ({@code ScaffoldingBlock.java:113-120}) or a repeater that drops in {@code
+ * neighborChanged} rather than in a tick; such a record is spent unused, and the scope it would
+ * have opened catches nothing because those paths spawn no item.
  */
 public final class SupportTicks {
-    /** Ticks a record waits for its tick: the tick is due next tick, and a stalled chunk may be late. */
+    /**
+     * Ticks a record waits for its tick. Every block in the family schedules with a delay of 1
+     * ({@code SugarCaneBlock.java:75}, {@code CactusBlock.java:99}, {@code BambooStalkBlock.java:139},
+     * {@code GrowingPlantBodyBlock.java:43}, {@code ChorusPlantBlock.java:65},
+     * {@code BigDripleafStemBlock.java:80}, {@code ScaffoldingBlock.java:103}), and a tick whose
+     * trigger has passed runs on the first tick its chunk is tickable again
+     * ({@code LevelTicks.java:107-119}), with no bound of its own. This is a chosen bound, not a
+     * game rule: a tick later than this loses its record and its drops stay in the world.
+     */
     private static final int WINDOW = 100;
 
     private static final int LIMIT = 65_536;
@@ -51,12 +62,11 @@ public final class SupportTicks {
     private record Owner(UUID player, Block type, long expires) {}
 
     /**
-     * By the level's own tick list, not by dimension: a regenerated world has a new {@link
-     * LevelTicks}, and must not keep the old one's records for the 65 thousand entries it still
-     * allows.
+     * By dimension, not by level: a regenerated world has a new {@link ServerLevel}, and must not
+     * keep the old one's records for the 65 thousand entries its dimension still allows.
      */
-    private static final Map<LevelTicks<Block>, Long2ObjectOpenHashMap<Owner>> TICKS =
-            new IdentityHashMap<>();
+    private static final Map<ResourceKey<Level>, Long2ObjectOpenHashMap<Owner>> TICKS =
+            new HashMap<>();
 
     /** The players whose breaks are running on this thread, innermost last. */
     private static final ThreadLocal<ArrayDeque<ServerPlayer>> BREAKERS = new ThreadLocal<>();
@@ -92,8 +102,8 @@ public final class SupportTicks {
 
     /**
      * Records that the break running on this thread scheduled the tick of {@code type} at {@code
-     * pos} in {@code ticks}, so its drops go to that player. Called for every block tick scheduled
-     * on a server level.
+     * pos} in {@code ticks}, so a destroy of that block there pays that player. Called for every
+     * block tick scheduled on a server level.
      */
     public static void record(LevelTicks<Block> ticks, BlockPos pos, Block type) {
         ArrayDeque<ServerPlayer> breakers = BREAKERS.get();
@@ -112,7 +122,7 @@ public final class SupportTicks {
             return;
         }
         Long2ObjectOpenHashMap<Owner> records =
-                TICKS.computeIfAbsent(ticks, key -> new Long2ObjectOpenHashMap<>());
+                TICKS.computeIfAbsent(level.dimension(), key -> new Long2ObjectOpenHashMap<>());
         records.put(pos.asLong(), new Owner(player.getUUID(), type, level.getGameTime() + WINDOW));
         if (records.size() > LIMIT) {
             prune(records, level.getGameTime());
@@ -124,7 +134,7 @@ public final class SupportTicks {
      * window names one and they are still here. The record is used up.
      */
     public static @Nullable ServerPlayer owner(ServerLevel level, BlockPos pos, Block type) {
-        Long2ObjectOpenHashMap<Owner> records = TICKS.get(level.getBlockTicks());
+        Long2ObjectOpenHashMap<Owner> records = TICKS.get(level.dimension());
         if (records == null) {
             return null;
         }

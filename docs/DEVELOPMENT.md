@@ -205,9 +205,10 @@ BrainageLib logs load problems, refused saves and write failures.
   `GrowingPlantBlock.java:55-56`, `ChorusPlantBlock.java:64-65,77-78`,
   `BigDripleafStemBlock.java:79-80,92-93`, `ScaffoldingBlock.java:103,115-117`). `SupportTicks`
   records a tick scheduled inside a player's break when the block at that position can no longer
-  survive, and `ServerLevel.tickBlock` runs it inside that player's scope, so a whole column or
-  chorus tree carries the player up. A support the game removes with no player behind it, and a
-  creative player's break, record nothing, so those drops stay in the world;
+  survive, and a `Level.destroyBlock` with no breaker at that position runs inside the player's
+  scope, so a whole column or chorus tree carries the player up. A support the game removes with no
+  player behind it, and a creative player's break, record nothing, so those drops stay in the
+  world;
 - the ender dragon's death-animation experience, for its killer;
 - a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.
 

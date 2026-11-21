@@ -11,6 +11,7 @@
 		"ExperienceOrbAccessor",
 		"ExperienceOrbMixin",
 		"ItemFrameMixin",
+		"LevelMixin",
 		"LevelTicksMixin",
 		"LivingEntityMixin",
 		"RespawnAnchorBlockMixin",
