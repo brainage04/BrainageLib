@@ -3,6 +3,7 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.command.ServerModsCommand;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
+import io.github.brainage04.brainagelib.drops.SupportTicks;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import io.github.brainage04.brainagelib.server.CurrentServer;
 import net.neoforged.bus.api.IEventBus;
@@ -41,6 +42,7 @@ public final class BrainageLibNeoForge {
     private void serverStopped(ServerStoppedEvent event) {
         FirstJoinHelpState.serverStopped();
         LeafOwners.clear();
+        SupportTicks.clear();
     }
 
     private void playerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {

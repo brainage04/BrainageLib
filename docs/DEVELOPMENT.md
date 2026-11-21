@@ -284,6 +284,18 @@ A rule's name and description in the edit-game-rules screen come from the transl
   that names no player (lava, a fire, a mob) leaves the item and contents in the world, and a
   creative break discards the vehicle the way it always did;
 - the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
+- the blocks that break a tick after their support goes: sugar cane, cactus, bamboo, kelp, twisting
+  and weeping vines, chorus plants, big dripleaf stems and scaffolding. Their `updateShape`
+  schedules a tick and their `tick` then calls `level.destroyBlock(pos, true)` with no breaker
+  (`SugarCaneBlock.java:37-38,74-75`, `CactusBlock.java:41-42,98-99`,
+  `BambooStalkBlock.java:100-101,138-139`, `GrowingPlantBodyBlock.java:42-43` with
+  `GrowingPlantBlock.java:55-56`, `ChorusPlantBlock.java:64-65,77-78`,
+  `BigDripleafStemBlock.java:79-80,92-93`, `ScaffoldingBlock.java:103,115-117`). `SupportTicks`
+  records a tick scheduled inside a player's break when the block at that position can no longer
+  survive, and a `Level.destroyBlock` with no breaker at that position runs inside the player's
+  scope, so a whole column or chorus tree carries the player up. A support the game removes with no
+  player behind it, and a creative player's break, record nothing, so those drops stay in the
+  world;
 - the ender dragon's death-animation experience, for its killer;
 - a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.
 

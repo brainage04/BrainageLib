@@ -155,6 +155,51 @@ public final class BrainageLibGameTest {
         DropCaptureGameTests.vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(context);
     }
 
+    @GameTest(maxTicks = 40)
+    public void sugarCaneColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.sugarCaneColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void cactusColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.cactusColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void bambooColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.bambooColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void kelpColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.kelpColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void vineColumnsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.vineColumnsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void chorusColumnsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.chorusColumnsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void bigDripleafStemsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.bigDripleafStemsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void scaffoldingColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.scaffoldingColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void supportBrokenWithoutAPlayerLeavesDropsInTheWorld(GameTestHelper context) {
+        SupportBreakGameTests.supportBrokenWithoutAPlayerLeavesDropsInTheWorld(context);
+    }
+
     @GameTest
     public void currentServerIsTheRunningServer(GameTestHelper context) {
         CurrentServerGameTests.currentServerIsTheRunningServer(context);
