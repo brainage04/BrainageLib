@@ -59,7 +59,7 @@ In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusa
 
 ## Loader platform
 
-`ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the loader services a server-side mod needs, with the same meaning on Fabric and NeoForge, so a mod no longer needs its own platform interface and one implementation per loader:
+`ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the config directory, command registration and the server's lifecycle and tick, with the same meaning on Fabric and NeoForge, so a mod needs one implementation per loader only for the services this interface does not have:
 
 ```java
 public static void initialize() {
@@ -83,7 +83,7 @@ Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod 
 | `onServerStopped` | after the server has shut down | `SERVER_STOPPED` | `ServerStoppedEvent` |
 | `onEndServerTick` | at the end of every server tick | `END_SERVER_TICK` | `ServerTickEvent.Post` |
 
-The command selection says which kind of server the tree is for: add dedicated-only commands when `selection.includeDedicated` is true, singleplayer-only ones when `selection.includeIntegrated` is.
+The command selection says which kind of server the tree is for: add dedicated-only commands when `selection == Commands.CommandSelection.DEDICATED`, singleplayer-only ones when `selection == Commands.CommandSelection.INTEGRATED`. The enum's own `includeDedicated` and `includeIntegrated` fields are private in vanilla, and only Fabric's command API makes them readable, so comparing the enum is the form that compiles on both loaders.
 
 NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders. On both loaders a stopping listener that throws an `Exception`, checked ones included, is logged, and the other stopping listeners and the save still run.
 

@@ -8,6 +8,10 @@ Nothing changes for players: the new API is for the mods that use it.
 
 - `ServerPlatform.get()`: the config directory, command registration, server starting, started, stopping and stopped, and the end of every server tick, from common code with the same meaning on Fabric and NeoForge. Command registrars get the server's command selection, and stopping listeners run on every stop, also after a crash or a failed start. "Starting" is before the server loads its levels on both loaders, which on NeoForge is `ServerAboutToStartEvent`, not `ServerStartingEvent`.
 
+### Build and publishing
+
+- A mod that calls `ServerPlatform` needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
+
 ## 2.1.0
 
 BrainageLib 2.1.0 adds one API and changes nothing players see.

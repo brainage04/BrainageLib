@@ -55,7 +55,9 @@ public interface ServerPlatform {
     /**
      * Adds a mod's commands to the server's command tree. {@code selection} says which kind of
      * server the tree is for, so a mod can add commands only to dedicated servers ({@code
-     * selection.includeDedicated}) or only to singleplayer ({@code selection.includeIntegrated}).
+     * selection == Commands.CommandSelection.DEDICATED}) or only to singleplayer ({@code
+     * selection == Commands.CommandSelection.INTEGRATED}). The enum's own fields are private in
+     * vanilla, and only Fabric's command API makes them readable.
      */
     @FunctionalInterface
     interface CommandRegistrar {
