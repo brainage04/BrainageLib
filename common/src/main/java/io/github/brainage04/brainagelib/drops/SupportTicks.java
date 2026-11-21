@@ -42,14 +42,15 @@ import org.jspecify.annotations.Nullable;
  * keeps the map to blocks that have already lost their support, which is the family's precondition.
  * It can still record a tick that will not destroy, such as a scaffolding block that falls instead
  * of breaking ({@code ScaffoldingBlock.java:113-120}) or a repeater that drops in {@code
- * neighborChanged} rather than in a tick; such a record is spent unused, and the scope it would
- * have opened catches nothing because those paths spawn no item.
+ * neighborChanged} rather than in a tick ({@code DiodeBlock.java:74-75}); that path calls {@code
+ * removeBlock}, not {@code destroyBlock}, so the record is never read and no scope opens.
  */
 public final class SupportTicks {
     /**
      * Ticks a record waits for its tick. Every block in the family schedules with a delay of 1
      * ({@code SugarCaneBlock.java:75}, {@code CactusBlock.java:99}, {@code BambooStalkBlock.java:139},
-     * {@code GrowingPlantBodyBlock.java:43}, {@code ChorusPlantBlock.java:65},
+     * {@code GrowingPlantBodyBlock.java:43}, {@code GrowingPlantHeadBlock.java:84},
+     * {@code ChorusPlantBlock.java:65}, {@code ChorusFlowerBlock.java:149},
      * {@code BigDripleafStemBlock.java:80}, {@code ScaffoldingBlock.java:103}), and a tick whose
      * trigger has passed runs on the first tick its chunk is tickable again
      * ({@code LevelTicks.java:107-119}), with no bound of its own. This is a chosen bound, not a
@@ -62,8 +63,8 @@ public final class SupportTicks {
     private record Owner(UUID player, Block type, long expires) {}
 
     /**
-     * By dimension, not by level: a regenerated world has a new {@link ServerLevel}, and must not
-     * keep the old one's records for the 65 thousand entries its dimension still allows.
+     * By dimension, so a world reload reuses one map instead of adding one per {@link ServerLevel};
+     * {@link #clear} on server stop empties it, and a record's window is in its world's game time.
      */
     private static final Map<ResourceKey<Level>, Long2ObjectOpenHashMap<Owner>> TICKS =
             new HashMap<>();
