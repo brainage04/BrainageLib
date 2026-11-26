@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.2.0 (unreleased)
+## 2.2.0
 
 BrainageLib 2.2.0 adds new API for the mods that use it, and one fix to drop capture that players see.
 
