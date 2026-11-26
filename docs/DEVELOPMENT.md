@@ -6,8 +6,8 @@ BrainageLib is on Maven Central from 1.3.0 onward: `io.github.brainage04:brainag
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib:2.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib:2.1.0"
+    implementation "io.github.brainage04:brainagelib:2.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib:2.2.0"
 }
 ```
 
@@ -15,7 +15,7 @@ For NeoForge, use the loader-specific artifact:
 
 ```groovy
 dependencies {
-    implementation "io.github.brainage04:brainagelib-neoforge:2.1.0"
+    implementation "io.github.brainage04:brainagelib-neoforge:2.2.0"
 }
 ```
 
@@ -24,7 +24,7 @@ Declare the runtime requirement in `fabric.mod.json`, capped below the next majo
 ```json
 {
   "depends": {
-    "brainagelib": ">=2.1.0 <3.0.0"
+    "brainagelib": ">=2.2.0 <3.0.0"
   }
 }
 ```
@@ -35,7 +35,7 @@ For NeoForge, declare `brainagelib` as a required dependency in `META-INF/neofor
 [[dependencies.examplemod]]
 modId="brainagelib"
 type="required"
-versionRange="[2.1.0,3.0.0)"
+versionRange="[2.2.0,3.0.0)"
 ordering="AFTER"
 side="BOTH"
 ```
@@ -49,13 +49,49 @@ For workspace development, MinecraftModConventions' `workspaceDependencies` comp
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLib') {
-        coordinate.set("io.github.brainage04:brainagelib:2.1.0")
+        coordinate.set("io.github.brainage04:brainagelib:2.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 ```
 
 In CI, pass `prepare_siblings: BrainageLib` to the MinecraftModConventions reusable workflows; they clone this repository into `../BrainageLib` and publish it to that local repository before building.
+
+## Loader platform
+
+`ServerPlatform.get()` (in `io.github.brainage04.brainagelib.platform`) gives common code the config directory, command registration and the server's lifecycle and tick, with the same meaning on Fabric and NeoForge, so a mod needs one implementation per loader only for the services this interface does not have:
+
+`ServerPlatform` is new in 2.2.0, so a mod that calls it needs `">=2.2.0 <3.0.0"` in `fabric.mod.json` and `versionRange="[2.2.0,3.0.0)"` in `neoforge.mods.toml`.
+
+```java
+public static void initialize() {
+    ServerPlatform platform = ServerPlatform.get();
+    config = ExampleConfig.load(platform.configDirectory().resolve("example.json"));
+    platform.onRegisterCommands((dispatcher, context, selection) -> ExampleCommands.register(dispatcher, context));
+    platform.onServerStarting(ExampleState::reset);
+    platform.onEndServerTick(ExampleRequests::tick);
+    platform.onServerStopping(ExampleRequests::clear);
+}
+```
+
+Call it from each loader's entry point (Fabric `onInitialize`, the NeoForge mod constructor), so the listeners are in place before a server starts.
+
+| Method | Runs | Fabric | NeoForge |
+|---|---|---|---|
+| `onRegisterCommands` | every time the server builds its command tree, with its command selection | `CommandRegistrationCallback` | `RegisterCommandsEvent` |
+| `onServerStarting` | when a server starts, before it loads its levels | `SERVER_STARTING` | `ServerAboutToStartEvent` |
+| `onServerStarted` | once the levels are loaded, before the first tick | `SERVER_STARTED` | `ServerStartedEvent` |
+| `onServerStopping` | when the server stops, before it saves and shuts down: after the last tick, and also after a crash or a failed start | `SERVER_STOPPING` | `ServerStoppingEvent`, or the start of `stopServer` when NeoForge did not post it |
+| `onServerStopped` | after the server has shut down | `SERVER_STOPPED` | `ServerStoppedEvent` |
+| `onEndServerTick` | at the end of every server tick | `END_SERVER_TICK` | `ServerTickEvent.Post` |
+
+The command selection says which kind of server the tree is for: add dedicated-only commands when `selection != Commands.CommandSelection.INTEGRATED`, singleplayer-only ones when `selection != Commands.CommandSelection.DEDICATED`. Those two comparisons are exactly the enum's own `includeDedicated` and `includeIntegrated` fields, which are private in vanilla and readable only through Fabric's command API, so comparing the enum is the form that compiles on both loaders. `ALL` counts as both, and in a development environment the game builds one `ALL` tree at startup to check the command syntax, which a mod's registrar also sees.
+
+NeoForge posts `ServerStoppingEvent` only when the server stops normally, while Fabric's `SERVER_STOPPING` also runs after a crash or a failed start. On NeoForge BrainageLib therefore runs the stopping listeners itself when `stopServer` starts without that event, so a listener that clears the mod's state runs on every stop on both loaders. On both loaders a stopping listener that throws an `Exception`, checked ones included, is logged, and the other stopping listeners and the save still run.
+
+NeoForge's `ServerStartingEvent` is not the counterpart of Fabric's `SERVER_STARTING`: NeoForge posts it after the levels have loaded, so state that world generation reads must be set in `onServerStarting`, and work that needs the levels belongs in `onServerStarted`.
+
+`loaderName()` returns `"Fabric"` or `"NeoForge"`, and `configDirectory()` the loader's config directory. Each listener is added to the loader's event when it is registered, so listeners run in the order the loader runs that event's listeners.
 
 ## Command feedback
 
@@ -171,9 +207,60 @@ Whenever the default becomes the value in effect (before the first load, and whe
 
 BrainageLib logs load problems, refused saves and write failures.
 
+## Access lists
+
+`OwnerAccessList<K>` (in `io.github.brainage04.brainagelib.access`) records which players an owner lets use something of theirs, such as a spawn or a named home. Each key names its owner: `OwnerAccessList.byOwner(onChange)` is keyed by the owner's UUID, `OwnerAccessList.create(Home::owner, onChange)` by a record of owner and home name.
+
+- `allows(key, player)` is true for the key's owner and for every guest the owner granted.
+- `guests(key)` gives the key's guests, without the owner, as an unmodifiable copy.
+- `grant(key, players)` and `revoke(key, players)` return how many guests they added or removed. `grant` skips the owner and players already granted; a key whose last guest is revoked is removed.
+- `onChange` (a saved data's `setDirty`) runs only when a grant or revoke changed something.
+- The list does not save itself: `snapshot()` gives the saved data's codec every key with its guests, and `load(saved)` puts the decoded entries back without calling `onChange`. Keys without guests are never stored, and an owner listed as their own guest is left out.
+
+Checks that belong to the mod stay there, for example refusing to share a home that does not exist. Use the list from the server thread.
+
+A list that also stores something per guest, such as a display name, or a per-owner flag such as "accept everyone", keeps that part in the mod: the list holds only the guests' UUIDs.
+
+The mod's codec keeps the mod's save format, so files saved before the mod used the list still load, and converts at the boundary. `load` takes any collection of guests, so a decoded list goes straight in, but `snapshot()` returns sets, so a codec that saves lists copies each set into a list. A format nested by owner and then by name, such as `owner -> home name -> guests`, regroups the list's `Map<Home, Set<UUID>>` into the nested map when saving and flattens it into `Home` keys when loading.
+
+## Current server
+
+`CurrentServer.get()` (in `io.github.brainage04.brainagelib.server`) returns the server running in this game instance, or `null` when none runs. It is for code the game gives no server, level or player to, such as a static item method or settings read on world generation threads. Code that has a level should use `level.getServer()`.
+
+A server becomes current before it loads its levels and before any starting listener runs, and stops being current after every stopped listener has run. On Fabric a BrainageLib mixin makes it current when the server's thread starts and clears it when the thread ends, for every server. On NeoForge BrainageLib reads the loader's own `ServerLifecycleHooks.getCurrentServer()`, which NeoForge sets just before `ServerAboutToStartEvent` and clears just after `ServerStoppedEvent`, for the dedicated, integrated and GameTest servers only: a mod that starts a `MinecraftServer` subclass of its own gets `null` there.
+
+Call it only from code that runs for the server: the server thread or the background executor it runs world generation on. Client code must not branch on it. In a client it returns the singleplayer server while one runs and `null` while the client plays on a remote server, so the same client code would behave differently in singleplayer and on a server.
+
 ## Confirmation windows
 
 `ConfirmationWindow<K>` implements "run the command again to confirm" in server ticks. Use one instance per action, call `requestOrConfirm(key, server.getTickCount())` and act on `CONFIRMED`; send the warning on `REQUESTED`. `Boundary.INCLUSIVE` still confirms exactly `windowTicks` after the request, `Boundary.EXCLUSIVE` does not. `cancel(key)` drops one request, `clear()` all of them (call it when the server stops), and `expire(tick, key -> ...)` drops closed requests so the mod can tell players.
+
+## Game rules
+
+`io.github.brainage04.brainagelib.gamerule` builds a mod's boolean and integer game rules in common code, the way the game builds its own, so `/gamerule`, the world's saved rules and the edit-game-rules screen treat them like vanilla rules on both loaders.
+
+Create one `GameRuleSet` per mod, add every rule to it while the mod initializes, and register the set once from each loader:
+
+```java
+public static final GameRuleSet RULES = GameRuleSet.create(MOD_ID);
+public static final GameRule<Boolean> ENABLED = RULES.bool("enabled", GameRuleCategory.PLAYER, true);
+public static final GameRule<Integer> RADIUS = RULES.integer("radius", GameRuleCategory.MISC, 8, 1, 64);
+
+// Fabric, in onInitialize():
+RULES.registerAll((id, rule) -> Registry.register(BuiltInRegistries.GAME_RULE, id, rule));
+
+// NeoForge, in the mod constructor:
+modBus.addListener((RegisterEvent event) ->
+        event.register(Registries.GAME_RULE, helper -> RULES.registerAll(helper::register)));
+```
+
+- `bool(path, category, default)` is a true/false rule; `/gamerule` returns 1 for true and 0 for false.
+- `integer(path, category, default, min)` and `integer(path, category, default, min, max)` accept whole numbers in the range, both ends included, and `/gamerule` returns the value. A default outside the range, or `min` above `max`, throws `IllegalArgumentException` when the rule is built.
+- `add(path, rule)` adds a rule built elsewhere, for example with `GameRuleFactory`, which builds the same rules without an id.
+- Each rule's id is `<namespace>:<path>`. A path or rule added twice throws `IllegalArgumentException`.
+- `registerAll` runs once. A rule added after it throws `IllegalStateException`, so a rule in a class that loads too late fails at once instead of silently missing from the registry.
+
+A rule's name and description in the edit-game-rules screen come from the translation keys `gamerule.<namespace>.<path>` and `gamerule.<namespace>.<path>.description`, which the mod's own language file provides. Without the name key the screen shows the raw key. Without the description key the tooltip shows only the rule id and its default.
 
 ## Drop capture
 
@@ -197,6 +284,18 @@ BrainageLib logs load problems, refused saves and write failures.
   that names no player (lava, a fire, a mob) leaves the item and contents in the world, and a
   creative break discards the vehicle the way it always did;
 - the block drops of an explosion a player caused: lit TNT and its chain, an owned projectile or fireball, a crystal the player hit, and a bed or respawn anchor the player used where it explodes (vanilla names nobody there; the click is credited around the call, so damage, knockback and kill credit stay vanilla's);
+- the blocks that break a tick after their support goes: sugar cane, cactus, bamboo, kelp, twisting
+  and weeping vines, chorus plants, big dripleaf stems and scaffolding. Their `updateShape`
+  schedules a tick and their `tick` then calls `level.destroyBlock(pos, true)` with no breaker
+  (`SugarCaneBlock.java:37-38,74-75`, `CactusBlock.java:41-42,98-99`,
+  `BambooStalkBlock.java:100-101,138-139`, `GrowingPlantBodyBlock.java:42-43` with
+  `GrowingPlantBlock.java:55-56`, `ChorusPlantBlock.java:64-65,77-78`,
+  `BigDripleafStemBlock.java:79-80,92-93`, `ScaffoldingBlock.java:103,115-117`). `SupportTicks`
+  records a tick scheduled inside a player's break when the block at that position can no longer
+  survive, and a `Level.destroyBlock` with no breaker at that position runs inside the player's
+  scope, so a whole column or chorus tree carries the player up. A support the game removes with no
+  player behind it, and a creative player's break, record nothing, so those drops stay in the
+  world;
 - the ender dragon's death-animation experience, for its killer;
 - a decaying leaf of a tree a player felled: every log a player breaks is recorded by BrainageLib itself, and a mod that breaks more logs for a player (a whole tree at once) calls `LeafOwners.felled(player, level, logs)` with those; the record covers the leaves those logs held up (vanilla's six leaf steps, loaded chunks only) for one minute, is kept whatever the policies say (they decide where the drops go when the leaf decays), and is forgotten when the server stops.
 
@@ -221,6 +320,40 @@ List<BlockPos> vein =
                 ConnectedBlocks.loaded(level, state -> state.is(Blocks.IRON_ORE)));
 ```
 
+## Name lookup
+
+`io.github.brainage04.brainagelib.lookup.NameLookup` asks Mojang for the account behind a name the server has not cached, off the server thread. The server's own `nameToIdCache().get(name)` asks Mojang on the calling thread, so one unknown name in a command freezes every player for up to 10 s (5 s to connect, 5 s to read).
+
+```java
+NameLookup.of(server, "Example Mod name lookup", LOGGER)
+        .lookup(
+                typed,
+                answer -> {
+                    switch (answer.status()) {
+                        case FOUND -> {
+                            server.services().nameToIdCache().add(answer.profile());
+                            apply(answer.profile());
+                        }
+                        case NOT_FOUND -> FEEDBACK.failure(source, "Mojang has no player named '%s'.", typed);
+                        case FAILED -> FEEDBACK.failure(source, "Could not look up '%s' right now.", typed);
+                        case TOO_MANY -> FEEDBACK.failure(source, "Too many name lookups right now.");
+                        case STALE -> FEEDBACK.failure(source, "Found '%s', but too late to act on. Run the command again.", typed);
+                    }
+                });
+```
+
+`of(server, threadName, logger)` gives the server's one lookup, so every mod on it shares one share of Mojang's limit: 100 requests per 2 minutes, half of Mojang's 200 per IP, charged on the lookup thread just before the request. The first caller's thread name and logger are the ones used. `lookup` answers on the server thread, except a name that cannot be a player name, which is answered `NOT_FOUND` at once on the calling thread without a request. A `FOUND` answer older than 30 s arrives as `STALE` with the profile, so the command can cache the name and ask the player to run it again. `install(server, lookup)` and `reset(server)` replace the server's lookup, which is how a GameTest stubs Mojang.
+
+`io.github.brainage04.brainagelib.lookup.CommandRateLimit` bounds how often one player may use a command: once a second, 20 a minute, 400 an hour. `of(server)` is the server's main allowance; `of(server, name)` is a further one kept apart from it, for a command that also prints a candidate list, so the list cannot spend the click its own buttons need. The name is shared by every mod on the server, so prefix it with the mod id (`"example listing"`); a blank name is refused. `refuse(player)` returns the wait in nanoseconds, or zero when the use is allowed and counted, and `describe(nanos)` words it for a message. A refused use is not counted. `clear()` forgets one allowance's uses and `clearAll(server)` every allowance of a server; both are for tests, since a reload must not hand a player a fresh allowance.
+
+```java
+long wait = CommandRateLimit.of(server).refuse(player.getUUID());
+if (wait != 0) {
+    FEEDBACK.error(player, "You can use /example again in %s.", CommandRateLimit.describe(wait));
+    return 0;
+}
+```
+
 ## GameTest support
 
 `io.github.brainage04:brainagelib-gametest` is a test-only artifact; never ship it or depend on it from main code. It is a small mod on both loaders, so GameTest runs load it next to the test mod:
@@ -228,14 +361,14 @@ List<BlockPos> vein =
 ```groovy
 workspaceDependencies {
     siblingMaven('BrainageLibGameTest') {
-        coordinate.set("io.github.brainage04:brainagelib-gametest:2.1.0")
+        coordinate.set("io.github.brainage04:brainagelib-gametest:2.2.0")
         siblingDirectory.set(rootProject.layout.projectDirectory.dir('../BrainageLib'))
     }
 }
 
 dependencies {
-    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.1.0"
-    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.1.0"
+    gametestImplementation "io.github.brainage04:brainagelib-gametest:2.2.0"
+    productionRuntimeMods "io.github.brainage04:brainagelib-gametest:2.2.0"
 }
 ```
 

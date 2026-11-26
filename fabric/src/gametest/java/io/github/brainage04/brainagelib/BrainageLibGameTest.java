@@ -1,5 +1,6 @@
 package io.github.brainage04.brainagelib;
 
+import io.github.brainage04.brainagelib.lookup.LookupGameTests;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
@@ -154,8 +155,83 @@ public final class BrainageLibGameTest {
         DropCaptureGameTests.vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld(context);
     }
 
+    @GameTest(maxTicks = 40)
+    public void sugarCaneColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.sugarCaneColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void cactusColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.cactusColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void bambooColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.bambooColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void kelpColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.kelpColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void vineColumnsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.vineColumnsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void chorusColumnsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.chorusColumnsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void bigDripleafStemsPayTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.bigDripleafStemsPayTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void scaffoldingColumnPaysTheBreaker(GameTestHelper context) {
+        SupportBreakGameTests.scaffoldingColumnPaysTheBreaker(context);
+    }
+
+    @GameTest(maxTicks = 40)
+    public void supportBrokenWithoutAPlayerLeavesDropsInTheWorld(GameTestHelper context) {
+        SupportBreakGameTests.supportBrokenWithoutAPlayerLeavesDropsInTheWorld(context);
+    }
+
+    @GameTest
+    public void currentServerIsTheRunningServer(GameTestHelper context) {
+        CurrentServerGameTests.currentServerIsTheRunningServer(context);
+    }
+
+    @GameTest
+    public void serverPlatformListenersRunOnTheRunningServer(GameTestHelper context) {
+        ServerPlatformGameTests.listenersRunOnTheRunningServer(context, "Fabric");
+    }
+
     @GameTest
     public void loadedWalkReadsOnlyLoadedChunks(GameTestHelper context) {
         ConnectedBlocksGameTests.loadedWalkReadsOnlyLoadedChunks(context);
+    }
+
+    @GameTest
+    public void gameRuleSetRulesWorkWithTheGameruleCommandAndAreSaved(GameTestHelper context) {
+        GameRuleSetGameTests.rulesWorkWithTheGameruleCommandAndAreSaved(context);
+    }
+
+    @GameTest
+    public void aServerKeepsOneLookupAndATestCanReplaceIt(GameTestHelper context) {
+        LookupGameTests.aServerKeepsOneLookupAndATestCanReplaceIt(context);
+    }
+
+    @GameTest
+    public void anAnswerIsDeliveredOnTheServerThread(GameTestHelper context) {
+        LookupGameTests.anAnswerIsDeliveredOnTheServerThread(context);
+    }
+
+    @GameTest
+    public void aServersAllowancesAreSharedAndChargedApart(GameTestHelper context) {
+        LookupGameTests.aServersAllowancesAreSharedAndChargedApart(context);
     }
 }

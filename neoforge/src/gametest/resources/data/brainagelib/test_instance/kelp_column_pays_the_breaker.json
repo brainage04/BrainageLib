@@ -1,0 +1,7 @@
+{
+  "environment": "minecraft:default",
+  "structure": "minecraftmodconventions:empty",
+  "max_ticks": 40,
+  "type": "minecraft:function",
+  "function": "brainagelib:kelp_column_pays_the_breaker"
+}

@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.github.brainage04.brainagelib.drops.DropCapture;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
+import io.github.brainage04.brainagelib.drops.SupportTicks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +21,8 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class BlockMixin {
     /// A block broken for a player outside `ServerPlayerGameMode.destroyBlock`: a mod that calls
     /// `playerDestroy` itself, or breaks blocks with `Level.destroyBlock` naming the player. Inside
-    /// a block break this is the same player's scope again.
+    /// a block break this is the same player's scope again, and the blocks that break a tick after
+    /// their support goes are theirs too ({@link SupportTicks}).
     @WrapMethod(
             method =
                     "dropResources(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;"
@@ -38,11 +40,11 @@ public abstract class BlockMixin {
             original.call(state, level, pos, blockEntity, breaker, tool);
             return;
         }
-        DropCapture.begin(player);
+        SupportTicks.enter(player);
         try {
             original.call(state, level, pos, blockEntity, breaker, tool);
         } finally {
-            DropCapture.end();
+            SupportTicks.exit();
         }
     }
 

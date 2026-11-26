@@ -2,6 +2,7 @@ package io.github.brainage04.brainagelib.fabric;
 
 import io.github.brainage04.brainagelib.command.ServerModsCommand;
 import io.github.brainage04.brainagelib.drops.LeafOwners;
+import io.github.brainage04.brainagelib.drops.SupportTicks;
 import io.github.brainage04.brainagelib.help.FirstJoinHelpState;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -20,6 +21,7 @@ public final class BrainageLibFabric implements ModInitializer {
                 server -> {
                     FirstJoinHelpState.serverStopped();
                     LeafOwners.clear();
+                    SupportTicks.clear();
                 });
         ServerPlayConnectionEvents.JOIN.register(
                 (handler, sender, server) ->

@@ -1,0 +1,7 @@
+{
+  "environment": "minecraft:default",
+  "structure": "minecraftmodconventions:empty",
+  "max_ticks": 40,
+  "type": "minecraft:function",
+  "function": "brainagelib:sugar_cane_column_pays_the_breaker"
+}

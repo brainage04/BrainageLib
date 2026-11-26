@@ -3,14 +3,22 @@ package io.github.brainage04.brainagelib.neoforge;
 import io.github.brainage04.brainagelib.BrainageLib;
 import io.github.brainage04.brainagelib.BrainageLibGameTests;
 import io.github.brainage04.brainagelib.ConnectedBlocksGameTests;
+import io.github.brainage04.brainagelib.CurrentServerGameTests;
 import io.github.brainage04.brainagelib.DropCaptureGameTests;
+import io.github.brainage04.brainagelib.GameRuleSetGameTests;
+import io.github.brainage04.brainagelib.ServerPlatformGameTests;
+import io.github.brainage04.brainagelib.SupportBreakGameTests;
+import io.github.brainage04.brainagelib.lookup.LookupGameTests;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 @EventBusSubscriber(modid = BrainageLib.MOD_ID)
@@ -109,8 +117,58 @@ public final class BrainageLibNeoForgeGameTests {
                             DropCaptureGameTests
                                     ::vehicleBrokenByAPlayerWhoIsNotDeliveredStaysInTheWorld),
                     new TestFunction(
+                            "current_server_is_the_running_server",
+                            CurrentServerGameTests::currentServerIsTheRunningServer),
+                    new TestFunction(
+                            "server_platform_listeners_run_on_the_running_server",
+                            context ->
+                                    ServerPlatformGameTests.listenersRunOnTheRunningServer(
+                                            context, "NeoForge")),
+                    new TestFunction(
+                            "neoforge_server_platform_listens_to_the_matching_events",
+                            NeoForgeServerPlatformGameTests::listensToTheMatchingEvents),
+                    new TestFunction(
+                            "sugar_cane_column_pays_the_breaker",
+                            SupportBreakGameTests::sugarCaneColumnPaysTheBreaker),
+                    new TestFunction(
+                            "cactus_column_pays_the_breaker",
+                            SupportBreakGameTests::cactusColumnPaysTheBreaker),
+                    new TestFunction(
+                            "bamboo_column_pays_the_breaker",
+                            SupportBreakGameTests::bambooColumnPaysTheBreaker),
+                    new TestFunction(
+                            "kelp_column_pays_the_breaker",
+                            SupportBreakGameTests::kelpColumnPaysTheBreaker),
+                    new TestFunction(
+                            "vine_columns_pay_the_breaker",
+                            SupportBreakGameTests::vineColumnsPayTheBreaker),
+                    new TestFunction(
+                            "chorus_columns_pay_the_breaker",
+                            SupportBreakGameTests::chorusColumnsPayTheBreaker),
+                    new TestFunction(
+                            "big_dripleaf_stems_pay_the_breaker",
+                            SupportBreakGameTests::bigDripleafStemsPayTheBreaker),
+                    new TestFunction(
+                            "scaffolding_column_pays_the_breaker",
+                            SupportBreakGameTests::scaffoldingColumnPaysTheBreaker),
+                    new TestFunction(
+                            "support_broken_without_a_player_leaves_drops_in_the_world",
+                            SupportBreakGameTests::supportBrokenWithoutAPlayerLeavesDropsInTheWorld),
+                    new TestFunction(
                             "loaded_walk_reads_only_loaded_chunks",
-                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks));
+                            ConnectedBlocksGameTests::loadedWalkReadsOnlyLoadedChunks),
+                    new TestFunction(
+                            "game_rule_set_rules_work_with_the_gamerule_command_and_are_saved",
+                            GameRuleSetGameTests::rulesWorkWithTheGameruleCommandAndAreSaved),
+                    new TestFunction(
+                            "a_server_keeps_one_lookup_and_a_test_can_replace_it",
+                            LookupGameTests::aServerKeepsOneLookupAndATestCanReplaceIt),
+                    new TestFunction(
+                            "an_answer_is_delivered_on_the_server_thread",
+                            LookupGameTests::anAnswerIsDeliveredOnTheServerThread),
+                    new TestFunction(
+                            "a_servers_allowances_are_shared_and_charged_apart",
+                            LookupGameTests::aServersAllowancesAreSharedAndChargedApart));
 
     private BrainageLibNeoForgeGameTests() {}
 
@@ -122,6 +180,22 @@ public final class BrainageLibNeoForgeGameTests {
                     Identifier.fromNamespaceAndPath(BrainageLib.MOD_ID, testFunction.id()),
                     testFunction::function);
         }
+        // The registration DEVELOPMENT.md tells a NeoForge mod to use.
+        event.register(
+                Registries.GAME_RULE,
+                helper -> GameRuleSetGameTests.RULES.registerAll(helper::register));
+    }
+
+    /** NeoForge's first server-starting event, for CurrentServerGameTests. */
+    @SubscribeEvent
+    public static void serverAboutToStart(ServerAboutToStartEvent event) {
+        CurrentServerGameTests.serverStarting(event.getServer());
+    }
+
+    /** Registers the GameTest platform listeners while the mod initializes, as a mod would. */
+    @SubscribeEvent
+    public static void registerPlatformListeners(FMLCommonSetupEvent event) {
+        ServerPlatformGameTests.registerListeners();
     }
 
     private record TestFunction(String id, Consumer<GameTestHelper> function) {}

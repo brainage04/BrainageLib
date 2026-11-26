@@ -1,0 +1,7 @@
+{
+  "environment": "minecraft:default",
+  "structure": "minecraftmodconventions:empty",
+  "max_ticks": 40,
+  "type": "minecraft:function",
+  "function": "brainagelib:vine_columns_pay_the_breaker"
+}
